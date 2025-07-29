@@ -1,0 +1,8 @@
+streamlit
+Pillow
+numpy
+opencv-python-headless
+ultralytics
+sahi
+deep_sort_realtime
+torch

@@ -126,10 +126,14 @@ uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mk
 def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip_frames=2):
     model = YOLOWorld(weights_path)
     tracker = DeepSort(max_age=10)
+    import shutil
+
+    safe_video_path = "/tmp/safe_uploaded_video.mp4"
+    shutil.copy(video_path, safe_video_path)
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         st.error(" Could not open the uploaded video. Please try with a different .mp4 file.")
-        return None
+        return 
     
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))

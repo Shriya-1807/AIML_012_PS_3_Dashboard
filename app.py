@@ -135,10 +135,8 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
     frame_count = 0
     prev_tracks = []
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    for frame in reader:
+
         frame_count += 1
         if frame_count % skip_frames == 0:
             results = model.predict(frame, conf=0.25, iou=0.6, augment=False, verbose=False)

@@ -166,7 +166,7 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
             track_id = track.track_id
             cv2.rectangle(frame, (l, t), (r, b), (0, 255, 0), 2)
             cv2.putText(frame, f"ID: {track_id}", (l, t - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-         out.write(frame) 
+        out.write(frame) 
     
     
     cap.release()

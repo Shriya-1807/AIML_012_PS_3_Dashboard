@@ -126,17 +126,21 @@ uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mk
 def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip_frames=2):
     model = YOLOWorld(weights_path)
     tracker = DeepSort(max_age=10)
-    import imageio
+    cap = cv2.VideoCapture(video_path)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    reader = imageio.get_reader(video_path)
-    fps = reader.get_meta_data()['fps']
-    writer = imageio.get_writer(output_path, fps=fps)
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
     frame_count = 0
     prev_tracks = []
-
-    for frame in reader:
-
+    
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
         frame_count += 1
         if frame_count % skip_frames == 0:
             results = model.predict(frame, conf=0.25, iou=0.6, augment=False, verbose=False)
@@ -158,13 +162,12 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
             track_id = track.track_id
             cv2.rectangle(frame, (l, t), (r, b), (0, 255, 0), 2)
             cv2.putText(frame, f"ID: {track_id}", (l, t - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        writer.append_data(frame[..., ::-1])  
+         out.write(frame) 
     
-    reader.close()
-    writer.close()
+    
+    cap.release()
+    out.release()
 
-    
-    cv2.destroyAllWindows()
     return output_path
 
 if uploaded_video is not None:

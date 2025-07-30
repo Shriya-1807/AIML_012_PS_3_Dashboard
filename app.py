@@ -107,7 +107,7 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
             st.success(f"Export succeeded: File created at {result_img_path}")
     except Exception as e:
         st.error(f"Failed to export result visualization: {e}")
-        return result_img_path,, result
+        return result_img_path, result
     return result_img_path, result
 
 

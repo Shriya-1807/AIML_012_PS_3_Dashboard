@@ -89,8 +89,8 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         overlap_height_ratio=0.2,
         overlap_width_ratio=0.2
     )
-    unique_img_name = f"result_{uuid.uuid4().hex}.jpg"
-    result_img_path = os.path.join(tempfile.gettempdir(), unique_img_name)
+    unique_img_name = f"result_{uuid.uuid4().hex}"
+    result_img_path = os.path.join(tempfile.gettempdir(), f"{unique_img_name}.jpg")
 
     try:
         result.export_visuals(

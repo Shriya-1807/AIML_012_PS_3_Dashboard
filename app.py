@@ -89,10 +89,12 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         overlap_height_ratio=0.2,
         overlap_width_ratio=0.2
     )
-    result_img_path = os.path.join(tempfile.gettempdir(), "result_image.jpg")
+    unique_img_name = f"result_{uuid.uuid4().hex}.jpg"
+    result_img_path = os.path.join(tempfile.gettempdir(), unique_img_name)
+    
     result.export_visuals(
         export_dir=tempfile.gettempdir(),
-        file_name="result_image.jpg",
+        file_name=unique_img_name,
         text_size=0.5,
         rect_th=1,
         hide_labels=False,
@@ -110,14 +112,14 @@ if uploaded_image is not None:
         st.success("Inference done!")
 
         st.markdown("### 🎯 Detected Output")
-        import os
+    
         if not os.path.exists(output_image_path):
             st.error(f"Could not find: {output_image_path}")
         else:
             with open(output_image_path, 'rb') as f:
                 img_bytes = f.read()
             st.image(img_bytes, caption="Detected with SAHI", use_column_width=True)
-        st.image(output_image_path, caption="Detected with SAHI", use_column_width=True)
+        
 
         st.markdown("### 📊 Object Counts")
         class_names = [pred.category.name for pred in result.object_prediction_list]
@@ -135,14 +137,11 @@ uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mk
 def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip_frames=2):
     model = YOLOWorld(weights_path)
     tracker = DeepSort(max_age=10)
-    import shutil
-
-    safe_video_path = "/tmp/safe_uploaded_video.mp4"
-    shutil.copy(video_path, safe_video_path)
+    
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
         st.error(" Could not open the uploaded video. Please try with a different .mp4 file.")
-        return 
+        return None
     
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -194,8 +193,9 @@ if uploaded_video is not None:
     st.video(temp_video_path)  
 
     with st.spinner("Processing video..."):
-        
-        temp_output_path = temp_video_path.replace('.mp4', '_out.mp4')
+
+        base, ext = os.path.splitext(temp_video_path)
+        temp_output_path = f"{base}_out{ext}"
 
         result_video_path = process_video_with_yolo_deepsort(
             temp_video_path,
@@ -206,6 +206,16 @@ if uploaded_video is not None:
     
         time.sleep(0.5)
         st.success("Video processed!")
+
+       if result_video_path is None:
+           st.error("Video processing failed or video could not be opened. Please try with a valid video file.")
+       elif os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:
+           with open(result_video_path, 'rb') as vid_file:
+               vid_bytes = vid_file.read()
+           st.video(vid_bytes)
+       else:
+           st.error("Processed video not found or is empty.")
+
 
         if os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:
             with open(result_video_path, 'rb') as vid_file:

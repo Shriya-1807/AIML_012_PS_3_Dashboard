@@ -16,6 +16,7 @@ from PIL import Image
 from collections import Counter
 import time
 import torch
+import uuid
 
 from ultralytics import YOLOWorld
 from sahi.predict import get_sliced_prediction
@@ -109,6 +110,13 @@ if uploaded_image is not None:
         st.success("Inference done!")
 
         st.markdown("### 🎯 Detected Output")
+        import os
+        if not os.path.exists(output_image_path):
+            st.error(f"Could not find: {output_image_path}")
+        else:
+            with open(output_image_path, 'rb') as f:
+                img_bytes = f.read()
+            st.image(img_bytes, caption="Detected with SAHI", use_column_width=True)
         st.image(output_image_path, caption="Detected with SAHI", use_column_width=True)
 
         st.markdown("### 📊 Object Counts")
@@ -180,20 +188,29 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
     return output_path
 
 if uploaded_video is not None:
-    tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-    tfile.write(uploaded_video.read())
-    tfile.flush()
-    st.video(tfile.name)
+    temp_video_path = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.mp4")
+    with open(temp_video_path, 'wb') as f:
+        f.write(uploaded_video.read())
+    st.video(temp_video_path)  
 
     with st.spinner("Processing video..."):
-        output_path = tfile.name.replace('.mp4', '_out.mp4')
+        
+        temp_output_path = temp_video_path.replace('.mp4', '_out.mp4')
+
         result_video_path = process_video_with_yolo_deepsort(
-            tfile.name, output_path=output_path, weights_path=model_path, skip_frames=2
+            temp_video_path,
+            output_path=temp_output_path,
+            weights_path=model_path,
+            skip_frames=2
         )
+    
         time.sleep(0.5)
         st.success("Video processed!")
 
         if os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:
-            st.video(result_video_path)
+            with open(result_video_path, 'rb') as vid_file:
+                vid_bytes = vid_file.read()
+            st.video(vid_bytes)
         else:
-            st.error("Processed video not found or is empty.")
+        st.error("Processed video not found or is empty.")
+          

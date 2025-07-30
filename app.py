@@ -105,8 +105,8 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         shutil.move(f"{unique_img_name}.jpg", result_img_path)
 
         st.info("Called result.export_visuals and moved image to outputs/")
-     except Exception as e:
-         st.error(f"Failed to export result visualization: {e}")
+    except Exception as e:
+        st.error(f"Failed to export result visualization: {e}")
 
 
         if os.path.exists(result_img_path):

@@ -96,7 +96,7 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
 
     try:
         result.export_visuals(
-            export_dir=output_dir,
+            output_dir=output_dir,
             file_name=unique_img_name,
             text_size=0.5,
             rect_th=1,

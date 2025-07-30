@@ -105,7 +105,7 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
 if uploaded_image is not None:
     image = Image.open(uploaded_image)
     st.markdown("### 🖼️ Uploaded Image Preview")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="Uploaded Image", use_container_width=True)
 
     with st.spinner("Running SAHI tiled inference..."):
         output_image_path, result = run_sahi_yolo_inference(image, model_path, confidence_value)
@@ -118,7 +118,7 @@ if uploaded_image is not None:
         else:
             with open(output_image_path, 'rb') as f:
                 img_bytes = f.read()
-            st.image(img_bytes, caption="Detected with SAHI", use_column_width=True)
+            st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
         
 
         st.markdown("### 📊 Object Counts")

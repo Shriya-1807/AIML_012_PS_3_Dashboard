@@ -90,11 +90,13 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         overlap_width_ratio=0.2
     )
     unique_img_name = f"result_{uuid.uuid4().hex}"
-    result_img_path = os.path.join(tempfile.gettempdir(), f"{unique_img_name}.jpg")
+    output_dir = os.path.join("outputs")
+    os.makedirs(output_dir, exist_ok=True)
+    result_img_path = os.path.join(output_dir, f"{unique_img_name}.jpg")
 
     try:
         result.export_visuals(
-            export_dir=tempfile.gettempdir(),
+            export_dir=output_dir,
             file_name=unique_img_name,
             text_size=0.5,
             rect_th=1,
@@ -102,6 +104,12 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
             hide_conf=True,
         )
         st.info("Called result.export_visuals")
+
+        if os.path.exists(result_img_path):
+            st.image(Image.open(result_img_path), caption="Detected with SAHI", use_container_width=True)
+        else:
+            st.error(f"[ERROR] Image not found at path: {result_img_path}")
+
 
         if not os.path.exists(result_img_path):
             st.error(f"Export failed: File not created at {result_img_path}")
@@ -198,7 +206,10 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
     return output_path
 
 if uploaded_video is not None:
-    temp_video_path = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.mp4")
+    video_dir = os.path.join("outputs")
+    os.makedirs(video_dir, exist_ok=True)
+    temp_video_path = os.path.join(video_dir, f"{uuid.uuid4()}.mp4")
+
     with open(temp_video_path, 'wb') as f:
         f.write(uploaded_video.read())
     st.video(temp_video_path)  
@@ -208,12 +219,17 @@ if uploaded_video is not None:
         base, ext = os.path.splitext(temp_video_path)
         temp_output_path = f"{base}_out{ext}"
 
-        result_video_path = process_video_with_yolo_deepsort(
-            temp_video_path,
-            output_path=temp_output_path,
-            weights_path=model_path,
-            skip_frames=2
-        )
+        try:
+            result_video_path = process_video_with_yolo_deepsort(
+                temp_video_path,
+                output_path=temp_output_path,
+                weights_path=model_path,
+                skip_frames=2
+            )
+        except Exception as e:
+            st.error(f"⚠️ Video processing failed: {e}")
+            result_video_path = None
+    
     
         time.sleep(0.5)
         st.success("Video processed!")

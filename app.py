@@ -207,14 +207,14 @@ if uploaded_video is not None:
         time.sleep(0.5)
         st.success("Video processed!")
 
-       if result_video_path is None:
-           st.error("Video processing failed or video could not be opened. Please try with a valid video file.")
-       elif os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:
-           with open(result_video_path, 'rb') as vid_file:
-               vid_bytes = vid_file.read()
-           st.video(vid_bytes)
-       else:
-           st.error("Processed video not found or is empty.")
+        if result_video_path is None:
+            st.error("Video processing failed or video could not be opened. Please try with a valid video file.")
+        elif os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:
+            with open(result_video_path, 'rb') as vid_file:
+                vid_bytes = vid_file.read()
+            st.video(vid_bytes)
+        else:
+            st.error("Processed video not found or is empty.")
 
 
         if os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:

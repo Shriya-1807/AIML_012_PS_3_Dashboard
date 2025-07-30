@@ -15,6 +15,7 @@ import cv2
 from PIL import Image
 from collections import Counter
 import time
+import torch
 
 from ultralytics import YOLOWorld
 from sahi.predict import get_sliced_prediction

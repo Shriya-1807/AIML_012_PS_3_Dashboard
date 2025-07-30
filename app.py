@@ -91,16 +91,25 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
     )
     unique_img_name = f"result_{uuid.uuid4().hex}.jpg"
     result_img_path = os.path.join(tempfile.gettempdir(), unique_img_name)
-    
-    result.export_visuals(
-        export_dir=tempfile.gettempdir(),
-        file_name=unique_img_name,
-        text_size=0.5,
-        rect_th=1,
-        hide_labels=False,
-        hide_conf=True,
-    )
+
+    try:
+        result.export_visuals(
+            export_dir=tempfile.gettempdir(),
+            file_name=unique_img_name,
+            text_size=0.5,
+            rect_th=1,
+            hide_labels=False,
+            hide_conf=True,
+        )
+        if not os.path.exists(result_img_path):
+            st.error(f"Export failed: File not created at {result_img_path}")
+        else:
+            st.success(f"Export succeeded: File created at {result_img_path}")
+    except Exception as e:
+        st.error(f"Failed to export result visualization: {e}")
+        return result_img_path,, result
     return result_img_path, result
+
 
 if uploaded_image is not None:
     image = Image.open(uploaded_image)

@@ -102,7 +102,12 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
             hide_labels=False,
             hide_conf=True,
         )
-        st.info("Called result.export_visuals")
+        shutil.move(f"{unique_img_name}.jpg", result_img_path)
+
+        st.info("Called result.export_visuals and moved image to outputs/")
+        except Exception as e:
+            st.error(f"Failed to export result visualization: {e}")
+
 
         if os.path.exists(result_img_path):
             st.image(Image.open(result_img_path), caption="Detected with SAHI", use_container_width=True)

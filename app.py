@@ -212,5 +212,5 @@ if uploaded_video is not None:
                 vid_bytes = vid_file.read()
             st.video(vid_bytes)
         else:
-        st.error("Processed video not found or is empty.")
+            st.error("Processed video not found or is empty.")
           

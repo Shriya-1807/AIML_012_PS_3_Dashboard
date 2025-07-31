@@ -32,7 +32,7 @@ st.markdown("""
     <style>
         .main {max-height: 100vh; overflow-y: scroll;}
         .block-container {padding-top: 0rem !important; margin-top: 0rem !important;}
-        .title {font-size: 15px; font-family: Georgia, serif; text-align: center; }
+        .title {font-size: 36px; font-family: Georgia, serif; text-align: center; }
         section[data-testid="stSidebar"] {
             background:linear-gradient(to bottom , #0F202B, #202D4A, #172626);
             padding: 20px;

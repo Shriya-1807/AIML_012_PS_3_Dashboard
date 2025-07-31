@@ -200,12 +200,10 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
 
 if uploaded_video is not None:
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_vid:
-    tmp_vid.write(uploaded_video.read())
-    temp_video_path = tmp_vid.name
-
-    with open(temp_video_path, 'wb') as f:
-        f.write(uploaded_video.read())
-    st.video(temp_video_path)  
+        video_bytes = uploaded_video.read()
+        tmp_vid.write(video_bytes)
+        temp_video_path = tmp_vid.name
+    st.video(video_bytes)  
 
     with st.spinner("Processing video..."):
         

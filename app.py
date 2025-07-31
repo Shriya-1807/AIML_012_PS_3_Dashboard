@@ -18,6 +18,7 @@ import time
 import torch
 import uuid
 import shutil
+import gc
 
 from ultralytics import YOLOWorld
 from sahi.predict import get_sliced_prediction
@@ -43,18 +44,36 @@ st.markdown("""
         }
         div[data-testid="stSidebarContent"] {width: 100% !important;}
         main{background: linear-gradient(to bottom right, #0F202B, #020229 );padding: 10px;}
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 24px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            white-space: pre-wrap;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px 4px 0px 0px;
+            gap: 1px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: #8cc8e6;
+            color: #000000;
+        }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="title">Drone Footage Object Detection and Tracking</h1>', unsafe_allow_html=True)
+tab1, tab2 = st.tabs(["📸 Image Processing", "🎥 Video Processing"])
 
 # Sidebar
+st.sidebar.markdown(" Model Configuration")
 
 selected_model = st.sidebar.radio(
     label="Select",
     options=["Default Detection","Text-prompt Detection"],
     index=0,
-    help="Choose the model to use for object detection."
+    help="Select desired option"
 )
 
 confidence_value = st.sidebar.slider("Select model confidence value", min_value=0.1, max_value=1.0, value=0.25, step=0.05)
@@ -78,12 +97,6 @@ if selected_model == "Text-prompt Detection":
             st.sidebar.write(f"{i}. {name}")
 
 # Image
-st.markdown(
-    '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:2px;">📸 Upload a drone image</p>',
-    unsafe_allow_html=True
-)
-uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload") 
-
 
 def run_sahi_yolo_inference(image_pil, model_path, conf):
     image_np = np.array(image_pil.convert("RGB"))
@@ -126,24 +139,29 @@ def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
     )
     return result
 
+with tab1:
+    st.markdown(
+    '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:2px;">📸 Upload a drone image</p>',
+    unsafe_allow_html=True
+    )
+    uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload") 
 
-
-if uploaded_image is not None:
-    image = Image.open(uploaded_image)
-    st.markdown("### 🖼️ Uploaded Image Preview")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+    if uploaded_image is not None:
+        image = Image.open(uploaded_image)
+        st.markdown("### 🖼️ Uploaded Image Preview")
+        st.image(image, caption="Uploaded Image", use_container_width=True)
 
     
-    if selected_model == "Text-prompt Detection" and category_names:
-        st.info(f"**Detecting:** {', '.join(category_names)}")
-    elif selected_model == "Text-prompt Detection" and not category_names:
-        st.warning(" Please enter class names in the sidebar for text prompt detection!")
-        st.stop()
+        if selected_model == "Text-prompt Detection" and category_names:
+            st.info(f"**Detecting:** {', '.join(category_names)}")
+        elif selected_model == "Text-prompt Detection" and not category_names:
+            st.warning(" Please enter class names in the sidebar for text prompt detection!")
+            st.stop()
 
-    with st.spinner("Running SAHI tiled inference..."):
-        try:
-            if selected_model == "Default Detection":
-                result = run_sahi_yolo_inference(image, model_path, confidence_value)
+        with st.spinner("Running SAHI tiled inference..."):
+            try:
+                if selected_model == "Default Detection":
+                    result = run_sahi_yolo_inference(image, model_path, confidence_value)
             else:  
                 result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
             
@@ -193,4 +211,195 @@ if uploaded_image is not None:
 
     else:
         st.error("❌ Exported image not found.")
+
+#Video
+def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_model, category_names=None):
+    
+    try:
+        # Load appropriate model
+        if selected_model == "Default Detection":
+            model = YOLOWorld(model_path)
+        else:
+            if not category_names:
+                st.error("Please enter class names for text-prompt detection")
+                return None, None
+            model = YOLOWorld(text_prompt_model_path)
+            model.set_classes(category_names)
+        
+        model.model.to("cpu")
+        tracker = DeepSort(max_age=10)
+        
+        # Open video
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            st.error("Could not open the uploaded video. Please try with a different .mp4 file.")
+            return None, None
+        
+        # Get video properties
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        
+        if fps is None or fps <= 0 or np.isnan(fps):
+            fps = 24
+        
+        # Set up video writer
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        
+        frame_count = 0
+        prev_tracks = []
+        detection_counts = Counter()
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            
+            frame_count += 1
+            
+            # Process every nth frame based on skip_frames setting
+            if frame_count % skip_frames == 0:
+                try:
+                    results = model.predict(frame, conf=conf, iou=0.6, augment=False, verbose=False)
+                    results = results[0]
+                    
+                    detections = []
+                    if results.boxes is not None:
+                        for box in results.boxes:
+                            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
+                            conf_score = float(box.conf[0].cpu().numpy())
+                            cls = int(box.cls[0].cpu().numpy())
+                            
+                            # Get class name and count detections
+                            if selected_model == "Default Detection":
+                                class_name = model.names[cls] if cls < len(model.names) else f"class_{cls}"
+                            else:
+                                class_name = category_names[cls] if cls < len(category_names) else f"class_{cls}"
+                            
+                            detection_counts[class_name] += 1
+                            detections.append(([x1, y1, x2 - x1, y2 - y1], conf_score, cls))
+                    
+                    # Update tracker
+                    tracks = tracker.update_tracks(detections, frame=frame)
+                    prev_tracks = tracks
+                    
+                except Exception as e:
+                    tracks = prev_tracks
+            else:
+                tracks = prev_tracks
+            
+            # Draw tracking results
+            for track in tracks:
+                if not track.is_confirmed():
+                    continue
+                    
+                l, t, r, b = map(int, track.to_ltrb())
+                track_id = track.track_id
+                
+                # Draw bounding box and ID
+                cv2.rectangle(frame, (l, t), (r, b), (0, 255, 0), 2)
+                cv2.putText(frame, f"ID: {track_id}", (l, t - 10), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            
+            out.write(frame)
+        
+        # Cleanup
+        cap.release()
+        out.release()
+        
+        return output_path, detection_counts
+        
+    except Exception as e:
+        st.error(f"Error processing video: {str(e)}")
+        return None, None
+        
+with tab2:
+    st.markdown(
+        '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:2px;">🎥 Upload a drone video</p>',
+        unsafe_allow_html=True
+    )
+    
+    uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mkv'], key="vid_upload")
+    
+    if uploaded_video is not None:
+        # Check file size
+        file_size = len(uploaded_video.getvalue()) / (1024 * 1024)  # Size in MB
+        
+        if file_size > max_file_size:
+            st.error(f"🚫 File too large! Please upload a video smaller than {max_file_size}MB. Current size: {file_size:.1f}MB")
+        else:
+            st.markdown("### 🖼️ Uploaded Video Preview")
+            st.video(uploaded_video)
+
+            if selected_model == "Text-prompt Detection" and category_names:
+                st.info(f"**Detecting:** {', '.join(category_names)}")
+            elif selected_model == "Text-prompt Detection" and not category_names:
+                st.warning("⚠️ Please enter class names in the sidebar for text prompt detection!")
+                st.stop()
+
+            # Use tempfile for video processing
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_vid:
+                video_bytes = uploaded_video.read()
+                tmp_vid.write(video_bytes)
+                temp_video_path = tmp_vid.name
+
+            with st.spinner("Processing video..."):
+                with tempfile.NamedTemporaryFile(delete=False, suffix="_out.mp4") as tmp_out:
+                    temp_output_path = tmp_out.name
+                
+                try:
+                    result_path, detection_counts = process_video_with_yolo_deepsort(
+                        temp_video_path,
+                        output_path=temp_output_path,
+                        conf=confidence_value,
+                        selected_model=selected_model,
+                        category_names=category_names
+                    )
+                    
+                    time.sleep(1)
+                    
+                    if result_path and os.path.exists(result_path) and os.path.getsize(result_path) > 1000:
+                        st.success("✅ Video processed!")
+                        
+                        st.markdown("### 🎯 Processed Video")
+                        with open(result_path, 'rb') as vid_file:
+                            vid_bytes = vid_file.read()
+                        st.video(vid_bytes)
+                        
+                        st.download_button(
+                            label="📥 Download Processed Video",
+                            data=vid_bytes,
+                            file_name=f"processed_{uploaded_video.name}",
+                            mime="video/mp4"
+                        )
+                        
+                        st.markdown("### 📊 Object Counts")
+                        if detection_counts:
+                            for cls, count in detection_counts.items():
+                                st.markdown(f"- **{cls}**: {count}")
+                        else:
+                            st.markdown("No objects detected in the video.")
+                    else:
+                        st.error("Processed video not found or is empty.")
+                        
+                except Exception as e:
+                    st.error(f"⚠️ Video processing failed: {e}")
+                
+                # Cleanup temporary files
+                try:
+                    os.remove(temp_video_path)
+                    if os.path.exists(temp_output_path):
+                        os.remove(temp_output_path)
+                except:
+                    pass
+
+# Footer
+st.markdown("---")
+st.markdown(
+    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">🚀 Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
+    unsafe_allow_html=True
+)
+
+
     

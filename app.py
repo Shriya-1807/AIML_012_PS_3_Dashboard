@@ -60,7 +60,23 @@ selected_model = st.sidebar.radio(
 confidence_value = st.sidebar.slider("Select model confidence value", min_value=0.1, max_value=1.0, value=0.25, step=0.05)
 
 model_path = "last.pt"
-text_prompt_model_path = 
+text_prompt_model_path = "yolov8l-worldv2.pt"
+
+category_names = []
+if selected_model == "Text-prompt Detection":
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**Text Prompt Settings**")
+    user_prompts = st.sidebar.text_input(
+        "Enter class names (separated by comma):",
+        value="person, car, truck, bus",
+        help="Enter the objects you want to detect, separated by commas"
+    )
+    category_names = [x.strip() for x in user_prompts.split(",") if x.strip() != ""]
+    
+    if category_names:
+        st.sidebar.write("**Classes to detect:**")
+        for i, name in enumerate(category_names, 1):
+            st.sidebar.write(f"{i}. {name}")
 
 # Image
 st.markdown(
@@ -86,14 +102,62 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         overlap_width_ratio=0.2
     )
     return result
+def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
+    """Text prompt SAHI inference with your colab settings"""
+    image_np = np.array(image_pil.convert("RGB"))
+    
+    # Initialize YOLOWorld model for text prompts
+    model = YOLOWorld(model_path)
+    model.set_classes(category_names)
+    
+    detection_model = UltralyticsDetectionModel(
+        model_path=model_path,
+        confidence_threshold=conf,
+        device="cuda:0" if torch.cuda.is_available() else "cpu"
+    )
+    
+    # Set classes for the detection model if it supports it
+    try:
+        detection_model.model.set_classes(category_names)
+    except:
+        pass  # In case the model doesn't support set_classes
+    
+    result = get_sliced_prediction(
+        image_np,
+        detection_model,
+        slice_height=256,  # Using your colab settings
+        slice_width=256,
+        overlap_height_ratio=0.3,
+        overlap_width_ratio=0.3
+    )
+    return result
+
+
 
 if uploaded_image is not None:
     image = Image.open(uploaded_image)
     st.markdown("### 🖼️ Uploaded Image Preview")
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info(f"**Detection Mode:** {selected_model}")
+    with col2:
+        st.info(f"**Confidence:** {confidence_value}")
+    
+    if selected_model == "Text-prompt Detection" and category_names:
+        st.info(f"**Detecting:** {', '.join(category_names)}")
+    elif selected_model == "Text-prompt Detection" and not category_names:
+        st.warning(" Please enter class names in the sidebar for text prompt detection!")
+        st.stop()
+
     with st.spinner("Running SAHI tiled inference..."):
-        result = run_sahi_yolo_inference(image, model_path, confidence_value)
+        try:
+            if selected_model == "Default Detection":
+                result = run_default_sahi_inference(image, default_model_path, confidence_value)
+            else:  
+                result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
+            
         unique_img_name = f"result_{uuid.uuid4().hex}"
         output_dir = os.path.abspath("outputs")
         os.makedirs(output_dir, exist_ok=True)
@@ -120,6 +184,7 @@ if uploaded_image is not None:
         with open(result_img_path, 'rb') as f:
             img_bytes = f.read()
         st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
+        
         st.download_button(
             label="📥 Download Annotated Image",
             data=img_bytes,

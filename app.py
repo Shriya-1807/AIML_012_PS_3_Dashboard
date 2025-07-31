@@ -31,7 +31,7 @@ st.set_page_config(page_title='Drone Detector', page_icon='🚀', layout='wide')
 st.markdown("""
     <style>
         .main {max-height: 100vh; overflow-y: scroll;}
-        .block-container {padding-top: 0rem !important;}
+        .block-container {padding-top: 0rem !important; margin-top: 0rem !important;}
         .title {font-size: 20px; font-family: Georgia, serif; text-align: center; margin-top: 0px;}
         section[data-testid="stSidebar"] {
             background:linear-gradient(to bottom , #0F202B, #202D4A, #172626);

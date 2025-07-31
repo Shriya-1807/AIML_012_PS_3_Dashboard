@@ -213,10 +213,13 @@ with tab1:
         st.error("❌ Exported image not found.")
 
 #Video
+skip_frames = 2 
+max_file_size = st.sidebar.slider("Max file size (MB)", min_value=10, max_value=500, value=100, step=10)
+
 def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_model, category_names=None):
     
     try:
-        # Load appropriate model
+        
         if selected_model == "Default Detection":
             model = YOLOWorld(model_path)
         else:
@@ -243,7 +246,6 @@ def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_mod
         if fps is None or fps <= 0 or np.isnan(fps):
             fps = 24
         
-        # Set up video writer
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
         
@@ -258,7 +260,7 @@ def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_mod
             
             frame_count += 1
             
-            # Process every nth frame based on skip_frames setting
+            
             if frame_count % skip_frames == 0:
                 try:
                     results = model.predict(frame, conf=conf, iou=0.6, augment=False, verbose=False)

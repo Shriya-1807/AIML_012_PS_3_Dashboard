@@ -352,7 +352,7 @@ with tab2:
                 st.info(f"**Detecting:** {', '.join(category_names)}")
             elif selected_model == "Text-prompt Detection" and not category_names:
                 st.warning("⚠️ Please enter class names in the sidebar for text prompt detection!")
-                st.stop()
+                
 
             # Use tempfile for video processing
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_vid:

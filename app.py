@@ -101,7 +101,7 @@ if uploaded_image is not None:
         try:
             result.export_visuals(
                 export_dir = output_dir,   
-                file_name=f"{unique_img_name}.png",
+                file_name=unique_img_name,
                 text_size=0.5,
                 rect_th=1,
                 hide_labels=False,

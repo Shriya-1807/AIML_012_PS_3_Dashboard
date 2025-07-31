@@ -340,12 +340,7 @@ with tab2:
     uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mkv'], key="vid_upload")
     
     if uploaded_video is not None:
-        # Check file size
-        file_size = len(uploaded_video.getvalue()) / (1024 * 1024)  # Size in MB
         
-        if file_size > max_file_size:
-            st.error(f"🚫 File too large! Please upload a video smaller than {max_file_size}MB. Current size: {file_size:.1f}MB")
-        else:
             st.markdown("### 🖼️ Uploaded Video Preview")
             st.video(uploaded_video)
 

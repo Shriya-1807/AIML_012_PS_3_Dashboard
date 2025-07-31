@@ -143,7 +143,8 @@ st.markdown(
 uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mkv'], key="vid_upload")
 
 def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip_frames=2):
-    model = YOLOWorld(weights_path)
+    model = YOLOWorld("last.pt")
+    model.model.to("cpu") 
     tracker = DeepSort(max_age=10)
     
     cap = cv2.VideoCapture(video_path)
@@ -176,6 +177,7 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
                 x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
                 conf = float(box.conf[0].cpu().numpy())
                 cls = int(box.cls[0].cpu().numpy())
+                class_name = model.model.names[cls] 
                 detections.append(([x1, y1, x2 - x1, y2 - y1], conf, cls))
             tracks = tracker.update_tracks(detections, frame=frame)
             prev_tracks = tracks
@@ -187,7 +189,7 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
             l, t, r, b = map(int, track.to_ltrb())
             track_id = track.track_id
             cv2.rectangle(frame, (l, t), (r, b), (0, 255, 0), 2)
-            cv2.putText(frame, f"{class_names}ID: {track_id}", (l, t - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(frame, f"{class_name}ID: {track_id}", (l, t - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         out.write(frame) 
     
     
@@ -197,18 +199,18 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
     return output_path
 
 if uploaded_video is not None:
-    video_dir = os.path.join("outputs")
-    os.makedirs(video_dir, exist_ok=True)
-    temp_video_path = os.path.join(video_dir, f"{uuid.uuid4()}.mp4")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_vid:
+    tmp_vid.write(uploaded_video.read())
+    temp_video_path = tmp_vid.name
 
     with open(temp_video_path, 'wb') as f:
         f.write(uploaded_video.read())
     st.video(temp_video_path)  
 
     with st.spinner("Processing video..."):
-
-        base, ext = os.path.splitext(temp_video_path)
-        temp_output_path = f"{base}_out{ext}"
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix="_out.mp4") as tmp_out:
+            temp_output_path = tmp_out.name
 
         try:
             result_video_path = process_video_with_yolo_deepsort(
@@ -222,7 +224,7 @@ if uploaded_video is not None:
             result_video_path = None
     
     
-        time.sleep(0.5)
+        time.sleep(1)
         st.success("Video processed!")
 
         if result_video_path is None:

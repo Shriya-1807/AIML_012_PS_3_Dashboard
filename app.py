@@ -235,10 +235,4 @@ if uploaded_video is not None:
             st.error("Processed video not found or is empty.")
 
 
-        if os.path.exists(result_video_path) and os.path.getsize(result_video_path) > 1000:
-            with open(result_video_path, 'rb') as vid_file:
-                vid_bytes = vid_file.read()
-            st.video(vid_bytes)
-        else:
-            st.error("Processed video not found or is empty.")
           

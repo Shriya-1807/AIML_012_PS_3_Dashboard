@@ -107,6 +107,7 @@ if uploaded_image is not None:
                 hide_labels=False,
                 hide_conf=True,
             )
+            time.sleep(1)
             
             st.success("Inference done and Image exported successfully!")
         except Exception as e:

@@ -96,7 +96,7 @@ if uploaded_image is not None:
         unique_img_name = f"result_{uuid.uuid4().hex}"
         output_dir = os.path.abspath("outputs")
         os.makedirs(output_dir, exist_ok=True)
-        result_img_path = os.path.join(output_dir, f"{unique_img_name}.jpg")
+        result_img_path = os.path.join(output_dir, f"{unique_img_name}.png")
 
         try:
             result.export_visuals(

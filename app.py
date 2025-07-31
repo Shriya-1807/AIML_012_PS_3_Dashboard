@@ -68,7 +68,6 @@ if selected_model == "Text-prompt Detection":
     st.sidebar.markdown("**Text Prompt Settings**")
     user_prompts = st.sidebar.text_input(
         "Enter class names (separated by comma):",
-        value="person, car, truck, bus",
         help="Enter the objects you want to detect, separated by commas"
     )
     category_names = [x.strip() for x in user_prompts.split(",") if x.strip() != ""]

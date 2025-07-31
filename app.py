@@ -107,11 +107,11 @@ def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
     image_np = np.array(image_pil.convert("RGB"))
     
     
-    model = YOLOWorld("yolov8l-worldv2.pt")
+    model = YOLOWorld(text_prompt_model_path)
     model.set_classes(category_names)
     
     detection_model = UltralyticsDetectionModel(
-        model_path=model_path,
+        model_path=text_prompt_model_path,
         confidence_threshold=conf,
         device="cuda:0" if torch.cuda.is_available() else "cpu"
     )
@@ -134,11 +134,6 @@ if uploaded_image is not None:
     st.markdown("### 🖼️ Uploaded Image Preview")
     st.image(image, caption="Uploaded Image", use_container_width=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.info(f"**Detection Mode:** {selected_model}")
-    with col2:
-        st.info(f"**Confidence:** {confidence_value}")
     
     if selected_model == "Text-prompt Detection" and category_names:
         st.info(f"**Detecting:** {', '.join(category_names)}")
@@ -149,7 +144,7 @@ if uploaded_image is not None:
     with st.spinner("Running SAHI tiled inference..."):
         try:
             if selected_model == "Default Detection":
-                result = run_sahi_yolo_inference(image, default_model_path, confidence_value)
+                result = run_sahi_yolo_inference(image, model_path, confidence_value)
             else:  
                 result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
             
@@ -190,12 +185,13 @@ if uploaded_image is not None:
             file_name=os.path.basename(result_img_path),
             mime="image/jpeg"
         )
-    else:
-        st.error("❌ Exported image not found.")
-    
-
+        
         st.markdown("### 📊 Object Counts")
         class_names = [pred.category.name for pred in result.object_prediction_list]
         class_counts = Counter(class_names)
         for cls, count in class_counts.items():
             st.markdown(f"- **{cls}**: {count}")
+
+    else:
+        st.error("❌ Exported image not found.")
+    

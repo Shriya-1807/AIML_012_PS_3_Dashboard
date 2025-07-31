@@ -100,13 +100,14 @@ if uploaded_image is not None:
 
         try:
             result.export_visuals(
-                export_dir = output_dir,
+                export_dir = output_dir,   
+                file_name=f"{unique_img_name}.jpg",
                 text_size=0.5,
                 rect_th=1,
                 hide_labels=False,
                 hide_conf=True,
             )
-            shutil.move(f"{unique_img_name}.jpg", result_img_path)
+            
             st.success("Inference done and Image exported successfully!")
         except Exception as e:
             st.error(f"Failed to export result visualization: {e}")

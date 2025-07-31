@@ -113,6 +113,8 @@ if uploaded_image is not None:
         except Exception as e:
             st.error(f"Failed to export result visualization: {e}")
             result_img_path = None
+    st.write("Expected image path:", result_img_path)
+    st.write("Files in output dir:", os.listdir(output_dir))
     if result_img_path and os.path.exists(result_img_path):
         st.markdown("### 🎯 Detected Output")
         with open(result_img_path, 'rb') as f:

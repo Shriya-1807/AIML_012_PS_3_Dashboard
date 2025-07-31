@@ -154,6 +154,8 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
+    if fps is None or fps <= 0 or np.isnan(fps):
+        fps = 24
 
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))

@@ -110,7 +110,7 @@ def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
     model.set_classes(category_names)
     
     detection_model = UltralyticsDetectionModel(
-        model_path=text_prompt_model_path,
+        model=model,
         confidence_threshold=conf,
         device="cuda:0" if torch.cuda.is_available() else "cpu"
     )

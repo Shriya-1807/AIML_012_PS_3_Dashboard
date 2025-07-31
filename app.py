@@ -122,7 +122,7 @@ if uploaded_image is not None:
             mime="image/jpeg"
         )
     else:
-        st.error("❌ Exported image not found."
+        st.error("❌ Exported image not found.")
     
 
         st.markdown("### 📊 Object Counts")

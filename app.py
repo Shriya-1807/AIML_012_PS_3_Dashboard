@@ -90,7 +90,7 @@ if uploaded_image is not None:
             file_name=os.path.basename(output_image_path),
             mime="image/jpeg"
             )
- def run_sahi_yolo_inference(image_pil, model_path, conf):
+def run_sahi_yolo_inference(image_pil, model_path, conf):
     image_np = np.array(image_pil.convert("RGB"))
     detection_model = UltralyticsDetectionModel(
         model_path=model_path,

@@ -65,7 +65,7 @@ st.markdown(
     '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:5px;">📸 Upload a drone image</p>',
     unsafe_allow_html=True
 )
-uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload" 
+uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload") 
 
 if uploaded_image is not None:
     image = Image.open(uploaded_image)

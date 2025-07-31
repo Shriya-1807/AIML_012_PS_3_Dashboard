@@ -162,8 +162,8 @@ with tab1:
             try:
                 if selected_model == "Default Detection":
                     result = run_sahi_yolo_inference(image, model_path, confidence_value)
-            else:  
-                result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
+                else:  
+                    result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
             
             unique_img_name = f"result_{uuid.uuid4().hex}"
             output_dir = os.path.abspath("outputs")

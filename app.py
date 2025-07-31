@@ -177,7 +177,6 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
                 x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
                 conf = float(box.conf[0].cpu().numpy())
                 cls = int(box.cls[0].cpu().numpy())
-                class_name = model.model.names[cls] 
                 detections.append(([x1, y1, x2 - x1, y2 - y1], conf, cls))
             tracks = tracker.update_tracks(detections, frame=frame)
             prev_tracks = tracks
@@ -189,7 +188,7 @@ def process_video_with_yolo_deepsort(video_path, output_path, weights_path, skip
             l, t, r, b = map(int, track.to_ltrb())
             track_id = track.track_id
             cv2.rectangle(frame, (l, t), (r, b), (0, 255, 0), 2)
-            cv2.putText(frame, f"{class_name}ID: {track_id}", (l, t - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            cv2.putText(frame, f"{ID: track_id}", (l, t - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         out.write(frame) 
     
     

@@ -94,7 +94,7 @@ if uploaded_image is not None:
     with st.spinner("Running SAHI tiled inference..."):
         result = run_sahi_yolo_inference(image, model_path, confidence_value)
         unique_img_name = f"result_{uuid.uuid4().hex}"
-        output_dir = os.path.join("outputs")
+        output_dir = os.path.abspath("outputs")
         os.makedirs(output_dir, exist_ok=True)
         result_img_path = os.path.join(output_dir, f"{unique_img_name}.jpg")
 

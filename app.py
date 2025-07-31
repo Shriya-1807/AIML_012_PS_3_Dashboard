@@ -32,7 +32,7 @@ st.markdown("""
     <style>
         .main {max-height: 100vh; overflow-y: scroll;}
         .block-container {padding-top: 0rem !important; margin-top: 0rem !important;}
-        .title {font-size: 10px; font-family: Georgia, serif; text-align: center; }
+        .title {font-size: 15px; font-family: Georgia, serif; text-align: center; }
         section[data-testid="stSidebar"] {
             background:linear-gradient(to bottom , #0F202B, #202D4A, #172626);
             padding: 20px;
@@ -63,7 +63,7 @@ model_path = "last.pt"
 
 # Image
 st.markdown(
-    '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:5px;">📸 Upload a drone image</p>',
+    '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:2px;">📸 Upload a drone image</p>',
     unsafe_allow_html=True
 )
 uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload") 

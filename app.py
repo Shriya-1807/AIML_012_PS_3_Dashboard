@@ -48,22 +48,15 @@ st.markdown("""
 st.markdown('<h1 class="title">Drone Footage Object Detection and Tracking</h1>', unsafe_allow_html=True)
 
 # Sidebar
-st.sidebar.title("➤ Specifications : ")
-st.sidebar.markdown("""
-    <p style='font-size:17px; font-weight:bold; font-family:"Segoe UI", sans-serif; color:white;'>
-        ➤ Select Detection Model
-    </p>
-""", unsafe_allow_html=True)
 
 selected_model = st.sidebar.radio(
-    label="Select Model",
-    options=["YOLOv8 s-Worldv2"],
+    label="Select",
+    options=["Default Detection","Text-prompt Detection"],
     index=0,
     help="Choose the model to use for object detection."
 )
 
 confidence_value = st.sidebar.slider("Select model confidence value", min_value=0.1, max_value=1.0, value=0.25, step=0.05)
-iou_value = st.sidebar.slider("Select iou value", min_value=0.1, max_value=1.0, value=0.4, step=0.1)
 
 model_path = "last.pt"
 
@@ -119,10 +112,7 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
             st.error(f"Export failed: File not created at {result_img_path}")
         else:
             st.success(f"Export succeeded: File created at {result_img_path}")
-    except Exception as e:
-        st.error(f"Failed to export result visualization: {e}")
-        return result_img_path, result
-    return result_img_path, result
+    
 
 
 if uploaded_image is not None:
@@ -142,6 +132,12 @@ if uploaded_image is not None:
             with open(output_image_path, 'rb') as f:
                 img_bytes = f.read()
             st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
+            st.download_button(
+            label="📥 Download Annotated Image",
+            data=img_bytes,
+            file_name=os.path.basename(output_image_path),
+            mime="image/jpeg"
+            )
         
 
         st.markdown("### 📊 Object Counts")

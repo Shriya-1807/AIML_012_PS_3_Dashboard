@@ -17,6 +17,7 @@ from collections import Counter
 import time
 import torch
 import uuid
+import shutil
 
 from ultralytics import YOLOWorld
 from sahi.predict import get_sliced_prediction

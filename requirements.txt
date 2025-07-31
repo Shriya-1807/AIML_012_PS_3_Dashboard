@@ -7,3 +7,4 @@ sahi
 deep_sort_realtime
 torch
 imageio[ffmpeg]
+clip-by-openai

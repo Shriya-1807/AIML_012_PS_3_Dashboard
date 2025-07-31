@@ -336,8 +336,8 @@ with tab2:
         unsafe_allow_html=True
     )
 
-        st.markdown("Select a Video file to upload: ")
-        uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mkv'], key="vid_upload")
+    st.markdown("Select a Video file to upload: ")
+    uploaded_video = st.file_uploader("Upload Video", type=['mp4', 'avi', 'mov', 'mkv'], key="vid_upload")
     
     if uploaded_video is not None:
         # Check file size

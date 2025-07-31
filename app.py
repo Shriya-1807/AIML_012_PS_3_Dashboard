@@ -25,7 +25,6 @@ from sahi.predict import get_sliced_prediction
 from sahi.models.ultralytics import UltralyticsDetectionModel
 from deep_sort_realtime.deepsort_tracker import DeepSort
 
-# Streamlit Page Config
 st.set_page_config(page_title='Drone Detector', page_icon='🚀', layout='wide')
 
 # Styling
@@ -160,12 +159,17 @@ with tab1:
             st.stop()
 
         with st.spinner("Running SAHI tiled inference..."):
-            try:
-                if selected_model == "Default Detection":
-                    result = run_sahi_yolo_inference(image, model_path, confidence_value)
-                else:  
-                    result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
-            
+            result = None
+            result_img_path = None
+        
+            if selected_model == "Default Detection":
+                result = run_sahi_yolo_inference(image, model_path, confidence_value)
+            else:  
+                result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
+
+            if result is None:
+                st.error(" Inference Failed!" )
+            else:
                 unique_img_name = f"result_{uuid.uuid4().hex}"
                 output_dir = os.path.abspath("outputs")
                 os.makedirs(output_dir, exist_ok=True)
@@ -181,15 +185,17 @@ with tab1:
                         hide_conf=True,
                     )
                     time.sleep(1)
-            
-                    st.success("Inference done and Image exported successfully!")
+                    if os.path.exists(result_img_path):
+                        st.success("Inference done and Image exported successfully!")
+                    else:
+                        st.error("Failed to export")
+                        result_img_path = None
+                        
                 except Exception as e:
                     st.error(f"Failed to export result visualization: {e}")
                     result_img_path = None
         
-            except Exception as e:
-                 st.error(f"Error during inference: {e}")
-                 result_img_path = None
+          
     
     if result_img_path and os.path.exists(result_img_path):
         st.markdown("### 🎯 Detected Output")
@@ -215,12 +221,10 @@ with tab1:
 
 #Video
 skip_frames = 2 
-max_file_size = st.sidebar.slider("Max file size (MB)", min_value=10, max_value=500, value=100, step=10)
 
 def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_model, category_names=None):
     
     try:
-        
         if selected_model == "Default Detection":
             model = YOLOWorld(model_path)
         else:
@@ -243,9 +247,10 @@ def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_mod
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
         if fps is None or fps <= 0 or np.isnan(fps):
-            fps = 24
+            fps = 24.0
         
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
@@ -260,39 +265,41 @@ def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_mod
                 break
             
             frame_count += 1
-            
-            
+                  
             if frame_count % skip_frames == 0:
                 try:
                     results = model.predict(frame, conf=conf, iou=0.6, augment=False, verbose=False)
-                    results = results[0]
+                    if results and len(results)>0:
+                        results = results[0]
                     
-                    detections = []
-                    if results.boxes is not None:
-                        for box in results.boxes:
-                            x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
-                            conf_score = float(box.conf[0].cpu().numpy())
-                            cls = int(box.cls[0].cpu().numpy())
+                        detections = []
+                        if results.boxes is not None and len(results.boxes)>0:
+                            for box in results.boxes:
+                                x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
+                                conf_score = float(box.conf[0].cpu().numpy())
+                                cls = int(box.cls[0].cpu().numpy())
                             
-                            # Get class name and count detections
-                            if selected_model == "Default Detection":
-                                class_name = model.names[cls] if cls < len(model.names) else f"class_{cls}"
-                            else:
-                                class_name = category_names[cls] if cls < len(category_names) else f"class_{cls}"
+                            # count detections
+                                if selected_model == "Default Detection":
+                                    class_name = model.names[cls] if cls < len(model.names) else f"class_{cls}"
+                                else:
+                                    class_name = category_names[cls] if cls < len(category_names) else f"class_{cls}"
                             
-                            detection_counts[class_name] += 1
-                            detections.append(([x1, y1, x2 - x1, y2 - y1], conf_score, cls))
+                                detection_counts[class_name] += 1
+                                detections.append(([x1, y1, x2 - x1, y2 - y1], conf_score, cls))
                     
-                    # Update tracker
-                    tracks = tracker.update_tracks(detections, frame=frame)
-                    prev_tracks = tracks
+                        # tracker
+                        tracks = tracker.update_tracks(detections, frame=frame)
+                        prev_tracks = tracks
+                    else:
+                        tracks = prev_tracks
                     
                 except Exception as e:
-                    tracks = prev_tracks
+                    tracks = prev_tracks   
             else:
                 tracks = prev_tracks
             
-            # Draw tracking results
+            # tracking results
             for track in tracks:
                 if not track.is_confirmed():
                     continue
@@ -316,6 +323,12 @@ def process_video_with_yolo_deepsort(video_path, output_path, conf, selected_mod
     except Exception as e:
         st.error(f"Error processing video: {str(e)}")
         return None, None
+    finally:
+        if 'cap' in locals():
+            cap.release()
+        if 'out' in locals():
+            out.release()
+        gc.collect()
         
 with tab2:
     st.markdown(
@@ -391,10 +404,12 @@ with tab2:
                 
                 # Cleanup temporary files
                 try:
-                    os.remove(temp_video_path)
+                    if os.path.exists(temp_video_path):
+                        os.remove(temp_video_path)
                     if os.path.exists(temp_output_path):
                         os.remove(temp_output_path)
-                except:
+                except Exception as e:
+                    st.warning(f"Could not cleanup temporary files: {e}")
                     pass
 
 # Footer

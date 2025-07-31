@@ -125,10 +125,10 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         st.error(f"Failed to export result visualization: {e}")
         return None, result
 
-        if not os.path.exists(result_img_path):
-            st.error(f"Export failed: File not created at {result_img_path}")
-        else:
-            st.success(f"Export succeeded: File created at {result_img_path}")
+    if not os.path.exists(result_img_path):
+        st.error(f"Export failed: File not created at {result_img_path}")
+    else:
+        st.success(f"Export succeeded: File created at {result_img_path}")
 
         
         

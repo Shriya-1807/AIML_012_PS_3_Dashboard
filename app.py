@@ -165,30 +165,30 @@ with tab1:
                 else:  
                     result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
             
-            unique_img_name = f"result_{uuid.uuid4().hex}"
-            output_dir = os.path.abspath("outputs")
-            os.makedirs(output_dir, exist_ok=True)
-            result_img_path = os.path.join(output_dir, f"{unique_img_name}.png")
+                unique_img_name = f"result_{uuid.uuid4().hex}"
+                output_dir = os.path.abspath("outputs")
+                os.makedirs(output_dir, exist_ok=True)
+                result_img_path = os.path.join(output_dir, f"{unique_img_name}.png")
 
-            try:
-                result.export_visuals(
-                    export_dir = output_dir,   
-                    file_name=unique_img_name,
-                    text_size=0.5,
-                    rect_th=1,
-                    hide_labels=False,
-                    hide_conf=True,
-                )
-                time.sleep(1)
+                try:
+                    result.export_visuals(
+                        export_dir = output_dir,   
+                        file_name=unique_img_name,
+                        text_size=0.5,
+                        rect_th=1,
+                        hide_labels=False,
+                        hide_conf=True,
+                    )
+                    time.sleep(1)
             
-                st.success("Inference done and Image exported successfully!")
-            except Exception as e:
-                st.error(f"Failed to export result visualization: {e}")
-                result_img_path = None
+                    st.success("Inference done and Image exported successfully!")
+                except Exception as e:
+                    st.error(f"Failed to export result visualization: {e}")
+                    result_img_path = None
         
-        except Exception as e:
-             st.error(f"Error during inference: {e}")
-             result_img_path = None
+            except Exception as e:
+                 st.error(f"Error during inference: {e}")
+                 result_img_path = None
     
     if result_img_path and os.path.exists(result_img_path):
         st.markdown("### 🎯 Detected Output")

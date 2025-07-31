@@ -67,29 +67,7 @@ st.markdown(
 )
 uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload") 
 
-if uploaded_image is not None:
-    image = Image.open(uploaded_image)
-    st.markdown("### 🖼️ Uploaded Image Preview")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
 
-    with st.spinner("Running SAHI tiled inference..."):
-        output_image_path, result = run_sahi_yolo_inference(image, model_path, confidence_value)
-        st.success("Inference done!")
-
-        st.markdown("### 🎯 Detected Output")
-    
-        if not os.path.exists(output_image_path):
-            st.error(f"Could not find: {output_image_path}")
-        else:
-            with open(output_image_path, 'rb') as f:
-                img_bytes = f.read()
-            st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
-            st.download_button(
-            label="📥 Download Annotated Image",
-            data=img_bytes,
-            file_name=os.path.basename(output_image_path),
-            mime="image/jpeg"
-            )
 def run_sahi_yolo_inference(image_pil, model_path, conf):
     image_np = np.array(image_pil.convert("RGB"))
     detection_model = UltralyticsDetectionModel(
@@ -105,33 +83,48 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         overlap_height_ratio=0.2,
         overlap_width_ratio=0.2
     )
-    unique_img_name = f"result_{uuid.uuid4().hex}"
-    output_dir = os.path.join("outputs")
-    os.makedirs(output_dir, exist_ok=True)
-    result_img_path = os.path.join(output_dir, f"{unique_img_name}.jpg")
+    return result
 
-    try:
-        result.export_visuals(
-            name=unique_img_name,
-            text_size=0.5,
-            rect_th=1,
-            hide_labels=False,
-            hide_conf=True,
+if uploaded_image is not None:
+    image = Image.open(uploaded_image)
+    st.markdown("### 🖼️ Uploaded Image Preview")
+    st.image(image, caption="Uploaded Image", use_container_width=True)
+
+    with st.spinner("Running SAHI tiled inference..."):
+        result = run_sahi_yolo_inference(image, model_path, confidence_value)
+        unique_img_name = f"result_{uuid.uuid4().hex}"
+        output_dir = os.path.join("outputs")
+        os.makedirs(output_dir, exist_ok=True)
+        result_img_path = os.path.join(output_dir, f"{unique_img_name}.jpg")
+
+        try:
+            result.export_visuals(
+                name=unique_img_name,
+                text_size=0.5,
+                rect_th=1,
+                hide_labels=False,
+                hide_conf=True,
+            )
+            shutil.move(f"{unique_img_name}.jpg", result_img_path)
+            st.success("Inference done and Image exported successfully!")
+        except Exception as e:
+            st.error(f"Failed to export result visualization: {e}")
+            result_img_path = None
+    if result_img_path and os.path.exists(result_img_path):
+        st.markdown("### 🎯 Detected Output")
+        with open(result_img_path, 'rb') as f:
+            img_bytes = f.read()
+        st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
+        st.download_button(
+            label="📥 Download Annotated Image",
+            data=img_bytes,
+            file_name=os.path.basename(result_img_path),
+            mime="image/jpeg"
         )
-        shutil.move(f"{unique_img_name}.jpg", result_img_path)
-
-        st.info("Called result.export_visuals and moved image to outputs/")
-    except Exception as e:
-        st.error(f"Failed to export result visualization: {e}")
-        return None, result
-
-    if not os.path.exists(result_img_path):
-        st.error(f"Export failed: File not created at {result_img_path}")
     else:
-        st.success(f"Export succeeded: File created at {result_img_path}")
+        st.error("❌ Exported image not found."
+    
 
-        
-        
         st.markdown("### 📊 Object Counts")
         class_names = [pred.category.name for pred in result.object_prediction_list]
         class_counts = Counter(class_names)

@@ -65,9 +65,32 @@ st.markdown(
     '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:5px;">📸 Upload a drone image</p>',
     unsafe_allow_html=True
 )
-uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload")
+uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload  
 
-def run_sahi_yolo_inference(image_pil, model_path, conf):
+if uploaded_image is not None:
+    image = Image.open(uploaded_image)
+    st.markdown("### 🖼️ Uploaded Image Preview")
+    st.image(image, caption="Uploaded Image", use_container_width=True)
+
+    with st.spinner("Running SAHI tiled inference..."):
+        output_image_path, result = run_sahi_yolo_inference(image, model_path, confidence_value)
+        st.success("Inference done!")
+
+        st.markdown("### 🎯 Detected Output")
+    
+        if not os.path.exists(output_image_path):
+            st.error(f"Could not find: {output_image_path}")
+        else:
+            with open(output_image_path, 'rb') as f:
+                img_bytes = f.read()
+            st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
+            st.download_button(
+            label="📥 Download Annotated Image",
+            data=img_bytes,
+            file_name=os.path.basename(output_image_path),
+            mime="image/jpeg"
+            )
+ def run_sahi_yolo_inference(image_pil, model_path, conf):
     image_np = np.array(image_pil.convert("RGB"))
     detection_model = UltralyticsDetectionModel(
         model_path=model_path,
@@ -100,46 +123,15 @@ def run_sahi_yolo_inference(image_pil, model_path, conf):
         st.info("Called result.export_visuals and moved image to outputs/")
     except Exception as e:
         st.error(f"Failed to export result visualization: {e}")
-
-
-        if os.path.exists(result_img_path):
-            st.image(Image.open(result_img_path), caption="Detected with SAHI", use_container_width=True)
-        else:
-            st.error(f"[ERROR] Image not found at path: {result_img_path}")
-
+        return None, result
 
         if not os.path.exists(result_img_path):
             st.error(f"Export failed: File not created at {result_img_path}")
         else:
-            st.success(f"Export succeeded: File created at {result_img_path}")
-    
+            st.success(f"Export succeeded: File created at {result_img_path}"
 
-
-if uploaded_image is not None:
-    image = Image.open(uploaded_image)
-    st.markdown("### 🖼️ Uploaded Image Preview")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
-
-    with st.spinner("Running SAHI tiled inference..."):
-        output_image_path, result = run_sahi_yolo_inference(image, model_path, confidence_value)
-        st.success("Inference done!")
-
-        st.markdown("### 🎯 Detected Output")
-    
-        if not os.path.exists(output_image_path):
-            st.error(f"Could not find: {output_image_path}")
-        else:
-            with open(output_image_path, 'rb') as f:
-                img_bytes = f.read()
-            st.image(img_bytes, caption="Detected with SAHI", use_container_width=True)
-            st.download_button(
-            label="📥 Download Annotated Image",
-            data=img_bytes,
-            file_name=os.path.basename(output_image_path),
-            mime="image/jpeg"
-            )
         
-
+        
         st.markdown("### 📊 Object Counts")
         class_names = [pred.category.name for pred in result.object_prediction_list]
         class_counts = Counter(class_names)

@@ -60,6 +60,7 @@ selected_model = st.sidebar.radio(
 confidence_value = st.sidebar.slider("Select model confidence value", min_value=0.1, max_value=1.0, value=0.25, step=0.05)
 
 model_path = "last.pt"
+text_prompt_model_path = 
 
 # Image
 st.markdown(

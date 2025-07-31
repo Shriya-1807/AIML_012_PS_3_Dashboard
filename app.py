@@ -106,8 +106,8 @@ def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
     """Text prompt SAHI inference with your colab settings"""
     image_np = np.array(image_pil.convert("RGB"))
     
-    # Initialize YOLOWorld model for text prompts
-    model = YOLOWorld(model_path)
+    
+    model = YOLOWorld("yolov8l-worldv2.pt")
     model.set_classes(category_names)
     
     detection_model = UltralyticsDetectionModel(
@@ -116,11 +116,6 @@ def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
         device="cuda:0" if torch.cuda.is_available() else "cpu"
     )
     
-    # Set classes for the detection model if it supports it
-    try:
-        detection_model.model.set_classes(category_names)
-    except:
-        pass  # In case the model doesn't support set_classes
     
     result = get_sliced_prediction(
         image_np,
@@ -154,7 +149,7 @@ if uploaded_image is not None:
     with st.spinner("Running SAHI tiled inference..."):
         try:
             if selected_model == "Default Detection":
-                result = run_default_sahi_inference(image, default_model_path, confidence_value)
+                result = run_sahi_yolo_inference(image, default_model_path, confidence_value)
             else:  
                 result = run_text_prompt_sahi_inference(image, text_prompt_model_path, confidence_value, category_names)
             

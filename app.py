@@ -99,7 +99,7 @@ if uploaded_image is not None:
 
         try:
             result.export_visuals(
-                name=unique_img_name,
+                output_dir=output_dir,
                 text_size=0.5,
                 rect_th=1,
                 hide_labels=False,

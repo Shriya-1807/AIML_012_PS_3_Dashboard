@@ -145,6 +145,7 @@ with tab1:
     unsafe_allow_html=True
     )
     uploaded_image = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png', 'webp'], key="img_upload") 
+    
 
     if uploaded_image is not None:
         image = Image.open(uploaded_image)

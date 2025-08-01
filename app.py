@@ -557,26 +557,7 @@ with tab2:
     
     st.info(f"📁 Maximum file size: {max_file_size} MB | Frame skip: {skip_frames}")
     
-    if uploaded_video is None:
-        st.markdown("### 📋 Instructions:")
-        st.markdown("""
-        1. **Upload a video** using the file uploader above
-        2. **Adjust settings** in the sidebar:
-           - Increase frame skip for faster processing
-           - Reduce file size limit if having issues
-           - Lower confidence for more detections
-        3. **For stability**: Keep videos under 50MB and use frame skip ≥3
-        4. **If crashes occur**: Try smaller videos or restart the app
-        """)
-        
-        st.markdown("### ⚡ Performance Tips:")
-        st.markdown("""
-        - **Shorter videos** (< 30 seconds) work best
-        - **Higher frame skip** = faster but less accurate
-        - **CPU processing** is more stable than GPU
-        - **Restart app** if you encounter repeated crashes
-        """)
-    
+   
     if uploaded_video is not None:
         file_size = len(uploaded_video.getvalue()) / (1024 * 1024)
         st.success(f"✅ Video uploaded! Size: {file_size:.1f} MB")

@@ -25,6 +25,12 @@ Drone Footage Object Detection and Tracking App
 Robust version with enhanced error handling and resource management
 """
 
+# -*- coding: utf-8 -*-
+"""
+Drone Footage Object Detection and Tracking App
+Robust version with enhanced error handling and resource management
+"""
+
 import streamlit as st
 import numpy as np
 import tempfile
@@ -342,74 +348,8 @@ with tab1:
         except Exception as e:
             st.error(f"Error processing image: {str(e)}")
 
-def convert_video_for_browser(input_path, output_path):
-    """Convert video to browser-compatible format using ffmpeg-python if available"""
-    try:
-        import subprocess
-        
-        # Try to use ffmpeg to convert to H.264 for better browser compatibility
-        cmd = [
-            'ffmpeg', '-i', input_path,
-            '-c:v', 'libx264',  # H.264 codec
-            '-preset', 'fast',   # Fast encoding
-            '-crf', '23',        # Good quality
-            '-c:a', 'aac',       # AAC audio codec
-            '-movflags', '+faststart',  # Web optimization
-            '-y',                # Overwrite output
-            output_path
-        ]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        
-        if result.returncode == 0 and os.path.exists(output_path):
-            return output_path
-        else:
-            # If ffmpeg fails, just copy the original
-            shutil.copy2(input_path, output_path)
-            return output_path
-            
-    except Exception:
-        # If ffmpeg is not available or fails, just copy the original
-        try:
-            shutil.copy2(input_path, output_path)
-            return output_path
-        except:
-            return input_path
-
 # Improved Video Processing Function
 def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selected_model, category_names=None, skip_frames=3):
-    """Convert video to browser-compatible format using ffmpeg-python if available"""
-    try:
-        import subprocess
-        
-        # Try to use ffmpeg to convert to H.264 for better browser compatibility
-        cmd = [
-            'ffmpeg', '-i', input_path,
-            '-c:v', 'libx264',  # H.264 codec
-            '-preset', 'fast',   # Fast encoding
-            '-crf', '23',        # Good quality
-            '-c:a', 'aac',       # AAC audio codec
-            '-movflags', '+faststart',  # Web optimization
-            '-y',                # Overwrite output
-            output_path
-        ]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        
-        if result.returncode == 0 and os.path.exists(output_path):
-            return output_path
-        else:
-            # If ffmpeg fails, just copy the original
-            shutil.copy2(input_path, output_path)
-            return output_path
-            
-    except Exception:
-        # If ffmpeg is not available or fails, just copy the original
-        try:
-            shutil.copy2(input_path, output_path)
-            return output_path
-        except:
-            return input_path
     """Robust video processing with better error handling and resource management"""
     
     cap = None
@@ -452,21 +392,9 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         if fps <= 0 or np.isnan(fps):
             fps = 24.0
         
-        # Setup video writer with browser-compatible codec
-        # Try different codecs for better browser compatibility
-        fourcc_options = [
-            cv2.VideoWriter_fourcc(*"mp4v"),  # MPEG-4
-            cv2.VideoWriter_fourcc(*"XVID"),  # XVID
-            cv2.VideoWriter_fourcc(*"H264"),  # H.264
-            cv2.VideoWriter_fourcc(*"avc1"),  # Another H.264 variant
-        ]
-        
-        out = None
-        for fourcc in fourcc_options:
-            out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-            if out.isOpened():
-                break
-            out.release()
+        # Setup video writer
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
         
         if not out.isOpened():
             return None, None, "Could not initialize video writer"
@@ -577,19 +505,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         # Clear progress indicators
         progress_container.empty()
         
-        # Try to convert video for better browser compatibility
-        try:
-            browser_compatible_path = output_path.replace('.mp4', '_browser.mp4')
-            final_path = convert_video_for_browser(output_path, browser_compatible_path)
-            
-            # Use the converted version if it exists and is larger than original
-            if (os.path.exists(browser_compatible_path) and 
-                os.path.getsize(browser_compatible_path) > os.path.getsize(output_path) * 0.8):
-                return browser_compatible_path, detection_counts, None
-            else:
-                return output_path, detection_counts, None
-        except:
-            return output_path, detection_counts, None
+        return output_path, detection_counts, None
         
     except Exception as e:
         error_msg = f"Video processing error: {str(e)}"
@@ -707,67 +623,20 @@ with tab2:
                         elif result_path and os.path.exists(result_path) and os.path.getsize(result_path) > 1000:
                             st.success("✅ Video processed successfully!")
                             
-                            # Read the processed video
+                            # Display result
+                            st.markdown("### 🎯 Processed Video")
                             with open(result_path, 'rb') as f:
                                 video_bytes = f.read()
                             
-                            # Check if video is valid
-                            if len(video_bytes) < 1000:
-                                st.error("❌ Processed video is too small - likely corrupted")
-                            else:
-                                # Display result with multiple attempts for compatibility
-                                st.markdown("### 🎯 Processed Video")
-                                
-                                # Method 1: Direct video display
-                                try:
-                                    st.video(video_bytes)
-                                    video_displayed = True
-                                except Exception as e:
-                                    st.warning(f"Direct video display failed: {str(e)}")
-                                    video_displayed = False
-                                
-                                # Method 2: If direct display fails, try creating a temporary file with different name
-                                if not video_displayed:
-                                    try:
-                                        # Create a new temporary file with .mp4 extension
-                                        temp_display_path = result_path.replace('.mp4', '_display.mp4')
-                                        shutil.copy2(result_path, temp_display_path)
-                                        
-                                        with open(temp_display_path, 'rb') as f:
-                                            video_bytes_new = f.read()
-                                        
-                                        st.video(video_bytes_new)
-                                        video_displayed = True
-                                        
-                                        # Cleanup temp display file
-                                        try:
-                                            os.unlink(temp_display_path)
-                                        except:
-                                            pass
-                                            
-                                    except Exception as e:
-                                        st.warning(f"Alternative video display failed: {str(e)}")
-                                        video_displayed = False
-                                
-                                # Method 3: If still fails, show video info and force download
-                                if not video_displayed:
-                                    st.error("🎥 Video preview not available in browser, but processing was successful!")
-                                    st.info("📱 The video may use a codec not supported by your browser. Please download to view.")
-                                    
-                                    # Show video file information
-                                    st.markdown("**📊 Video Information:**")
-                                    st.markdown(f"- File size: {len(video_bytes) / (1024*1024):.1f} MB")
-                                    st.markdown(f"- Format: MP4")
-                                    st.markdown("- Status: ✅ Processing completed successfully")
-                                
-                                # Always provide download button
-                                st.download_button(
-                                    "📥 Download Processed Video",
-                                    data=video_bytes,
-                                    file_name=f"processed_{uploaded_video.name}",
-                                    mime="video/mp4",
-                                    help="Download the processed video to your device"
-                                )
+                            st.video(video_bytes)
+                            
+                            # Download button
+                            st.download_button(
+                                "📥 Download Processed Video",
+                                data=video_bytes,
+                                file_name=f"processed_{uploaded_video.name}",
+                                mime="video/mp4"
+                            )
                             
                             # Show detection summary
                             st.markdown("### 📊 Detection Summary")

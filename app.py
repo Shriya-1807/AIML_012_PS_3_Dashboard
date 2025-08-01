@@ -13,6 +13,12 @@ Drone Footage Object Detection and Tracking App
 Fixed version with error corrections
 """
 
+# -*- coding: utf-8 -*-
+"""
+Drone Footage Object Detection and Tracking App
+Robust version with enhanced error handling and resource management
+"""
+
 import streamlit as st
 import numpy as np
 import tempfile

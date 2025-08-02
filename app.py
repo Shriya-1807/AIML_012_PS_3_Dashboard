@@ -1,4 +1,3 @@
-
 import streamlit as st
 import numpy as np
 import tempfile
@@ -61,18 +60,20 @@ st.markdown("""
             padding-right: 1rem !important;
         }
         .title {
-            font-size: 32px; 
+            font-size: 28px; 
             font-family: Georgia, serif; 
             text-align: center;
             color: #FFFFFF;
             margin-bottom: 1rem;
-            padding: 10px;
+            padding: 15px 10px;
             word-wrap: break-word;
-            line-height: 1.2;
+            line-height: 1.3;
             width: 100%;
             max-width: 100%;
             overflow-wrap: break-word;
             white-space: normal;
+            display: block;
+            box-sizing: border-box;
         }
         section[data-testid="stSidebar"] {
             background: linear-gradient(to bottom, #0F202B, #202D4A, #172626);
@@ -104,19 +105,27 @@ st.markdown("""
             color: #000000;
         }
         
+        @media (max-width: 1200px) {
+            .title {
+                font-size: 26px !important;
+                padding: 12px 8px !important;
+                line-height: 1.2 !important;
+            }
+        }
+        
         @media (max-width: 768px) {
             .title {
-                font-size: 24px !important;
-                padding: 8px !important;
-                line-height: 1.1 !important;
+                font-size: 22px !important;
+                padding: 10px 5px !important;
+                line-height: 1.2 !important;
             }
         }
         
         @media (max-width: 480px) {
             .title {
                 font-size: 18px !important;
-                line-height: 1.0 !important;
-                padding: 5px !important;
+                line-height: 1.1 !important;
+                padding: 8px 3px !important;
             }
         }
     </style>
@@ -126,7 +135,7 @@ st.markdown("""
 title_container = st.container()
 with title_container:
     st.markdown(
-        '<div class="title">Drone Footage Object Detection and Tracking </div>', 
+        '<div class="title">Drone Footage Object Detection and Tracking</div>', 
         unsafe_allow_html=True
     )
 tab1, tab2 = st.tabs(["📸 Image ", "🎥 Video "])
@@ -694,3 +703,4 @@ st.markdown(
     '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
     unsafe_allow_html=True
 )
+

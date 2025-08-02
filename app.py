@@ -48,7 +48,7 @@ def memory_cleanup():
             torch.cuda.empty_cache()
 
 # Streamlit Page Config
-st.set_page_config(page_title='Drone Detector', page_icon='🖈', layout='wide')
+st.set_page_config(page_title='Drone Footage Object Detector', page_icon='🖈', layout='wide')
 
 # Add memory info to sidebar
 def show_memory_info():

@@ -4,12 +4,6 @@ Drone Footage Object Detection and Tracking App
 Fixed version with class names on bounding boxes
 """
 
-# -*- coding: utf-8 -*-
-"""
-Drone Footage Object Detection and Tracking App
-Fixed version with class names on bounding boxes
-"""
-
 import streamlit as st
 import numpy as np
 import tempfile
@@ -48,7 +42,7 @@ def memory_cleanup():
             torch.cuda.empty_cache()
 
 # Streamlit Page Config
-st.set_page_config(page_title='Drone Footage Object Detector', page_icon='🖈', layout='wide')
+st.set_page_config(page_title='Drone Detector', page_icon='🚀', layout='wide')
 
 # Add memory info to sidebar
 def show_memory_info():
@@ -65,25 +59,8 @@ def show_memory_info():
 st.markdown("""
     <style>
         .main {max-height: 100vh; overflow-y: scroll;}
-        .block-container {
-            padding-top: 1rem !important; 
-            margin-top: 0rem !important;
-            max-width: 100% !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-        }
-        .title {
-            font-size: 32px; 
-            font-family: Georgia, serif; 
-            text-align: center;
-            color: #FFFFFF;
-            margin-bottom: 1rem;
-            padding: 10px;
-            word-wrap: break-word;
-            line-height: 1.2;
-            width: 100%;
-            max-width: 100%;
-        }
+        .block-container {padding-top: 0rem !important; margin-top: 0rem !important;}
+        .title {font-size: 36px; font-family: Georgia, serif; text-align: center;}
         section[data-testid="stSidebar"] {
             background: linear-gradient(to bottom, #0F202B, #202D4A, #172626);
             padding: 20px;
@@ -93,10 +70,7 @@ st.markdown("""
             width: 300px !important;
         }
         div[data-testid="stSidebarContent"] {width: 100% !important;}
-        main {
-            background: linear-gradient(to bottom right, #0F202B, #020229); 
-            padding: 10px;
-        }
+        main {background: linear-gradient(to bottom right, #0F202B, #020229); padding: 10px;}
         .stTabs [data-baseweb="tab-list"] {
             gap: 24px;
         }
@@ -113,32 +87,11 @@ st.markdown("""
             background-color: #8cc8e6;
             color: #000000;
         }
-        
-        /* Responsive title for smaller screens */
-        @media (max-width: 768px) {
-            .title {
-                font-size: 24px;
-                padding: 5px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .title {
-                font-size: 20px;
-                line-height: 1.1;
-            }
-        }
     </style>
 """, unsafe_allow_html=True)
 
-# Create a container for the title to ensure full width
-title_container = st.container()
-with title_container:
-    st.markdown(
-        '<div class="title">Drone Footage Object Detection and Tracking</div>', 
-        unsafe_allow_html=True
-    )
-tab1, tab2 = st.tabs(["📸 Image                    ", "🎥 Video                  "])
+st.markdown('<h1 class="title">Drone Footage Object Detection and Tracking</h1>', unsafe_allow_html=True)
+tab1, tab2 = st.tabs(["📸 Image Processing", "🎥 Video Processing"])
 
 # Sidebar Configuration
 st.sidebar.markdown("## Model Configuration")
@@ -186,10 +139,10 @@ text_prompt_model_path = "yolov8l-worldv2.pt"
 
 # Validate model files exist
 if not os.path.exists(model_path):
-    st.sidebar.warning(f"❗Default model file '{model_path}' not found!")
+    st.sidebar.warning(f"⚠️ Default model file '{model_path}' not found!")
 
 if selected_model == "Text-prompt Detection" and not os.path.exists(text_prompt_model_path):
-    st.sidebar.warning(f"❗Text prompt model file '{text_prompt_model_path}' not found!")
+    st.sidebar.warning(f"⚠️ Text prompt model file '{text_prompt_model_path}' not found!")
 
 category_names = []
 if selected_model == "Text-prompt Detection":
@@ -210,7 +163,7 @@ if selected_model == "Text-prompt Detection":
 # Show system info
 show_memory_info()
 
-# Image Processing Functions (keeping original logic)
+# Image Processing Functions (simplified for stability)
 def run_sahi_yolo_inference(image_pil, model_path, conf):
     """Run SAHI inference with default YOLO model"""
     try:
@@ -286,11 +239,11 @@ with tab1:
     if uploaded_image is not None:
         try:
             image = Image.open(uploaded_image)
-            st.markdown("### Uploaded Image Preview")
+            st.markdown("### 🖼️ Uploaded Image Preview")
             st.image(image, caption="Uploaded Image", use_container_width=True)
 
             if selected_model == "Text-prompt Detection" and not category_names:
-                st.warning("❗Please enter class names in the sidebar for text prompt detection!")
+                st.warning("⚠️ Please enter class names in the sidebar for text prompt detection!")
             else:
                 if selected_model == "Text-prompt Detection" and category_names:
                     st.info(f"**Detecting:** {', '.join(category_names)}")
@@ -327,7 +280,7 @@ with tab1:
                             time.sleep(1)
                             
                             if os.path.exists(result_img_path):
-                                st.success("✔ Inference completed and image exported successfully!")
+                                st.success("✅ Inference completed and image exported successfully!")
                             else:
                                 st.error("❌ Failed to export result visualization.")
                                 result_img_path = None
@@ -345,13 +298,13 @@ with tab1:
                     st.image(img_bytes, caption="Detected Objects with SAHI", use_container_width=True)
                     
                     st.download_button(
-                        label="Download Annotated Image",
+                        label="📥 Download Annotated Image",
                         data=img_bytes,
                         file_name=f"detected_{uploaded_image.name}",
                         mime="image/png"
                     )
                     
-                    st.markdown("### Detection Summary")
+                    st.markdown("### 📊 Detection Summary")
                     if hasattr(result, 'object_prediction_list') and result.object_prediction_list:
                         class_names = [pred.category.name for pred in result.object_prediction_list]
                         class_counts = Counter(class_names)
@@ -363,14 +316,14 @@ with tab1:
                     else:
                         st.markdown("No objects detected in the image.")
                 elif result is not None:
-                    st.warning("❗Detection completed but could not save the result image.")
+                    st.warning("⚠️ Detection completed but could not save the result image.")
                         
         except Exception as e:
             st.error(f"Error processing image: {str(e)}")
 
-# Fixed Video Processing Function with Class Names on Bounding Boxes
+# Improved Video Processing Function
 def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selected_model, category_names=None, skip_frames=3):
-    """Robust video processing with class names displayed on bounding boxes"""
+    """Robust video processing with better error handling and resource management"""
     
     cap = None
     out = None
@@ -423,7 +376,6 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         processed_frames = 0
         detection_counts = Counter()
         prev_tracks = []
-        track_class_map = {}  # Store class info for each track
         
         # Create progress containers
         progress_container = st.container()
@@ -466,8 +418,6 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                         results = results[0]
                         
                         detections = []
-                        current_detections_info = []  # Store class info for current detections
-                        
                         if results.boxes is not None and len(results.boxes) > 0:
                             for box in results.boxes:
                                 try:
@@ -483,22 +433,11 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                                     
                                     detection_counts[class_name] += 1
                                     detections.append(([x1, y1, x2 - x1, y2 - y1], conf_score, cls))
-                                    current_detections_info.append({
-                                        'bbox': [x1, y1, x2 - x1, y2 - y1],
-                                        'class_name': class_name,
-                                        'confidence': conf_score
-                                    })
                                 except Exception:
                                     continue  # Skip invalid detections
                         
                         # Update tracker
                         tracks = tracker.update_tracks(detections, frame=frame)
-                        
-                        # Update track-class mapping
-                        for i, track in enumerate(tracks):
-                            if track.is_confirmed() and i < len(current_detections_info):
-                                track_class_map[track.track_id] = current_detections_info[i]['class_name']
-                        
                         prev_tracks = tracks
                     else:
                         tracks = prev_tracks
@@ -509,7 +448,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
             else:
                 tracks = prev_tracks
             
-            # Draw tracking results with class names
+            # Draw tracking results
             try:
                 for track in tracks:
                     if not track.is_confirmed():
@@ -519,40 +458,13 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                     l, t, r, b = map(int, ltrb)
                     track_id = track.track_id
                     
-                    # Get class name for this track
-                    class_name = track_class_map.get(track_id, "Unknown")
-                    
-                    # Choose color based on class (you can customize this)
-                    colors = {
-                        'person': (0, 255, 0),      # Green
-                        'car': (255, 0, 0),         # Blue
-                        'truck': (0, 0, 255),       # Red
-                        'drone': (255, 255, 0),     # Cyan
-                        'bike': (255, 0, 255),      # Magenta
-                        'motorcycle': (128, 0, 128), # Purple
-                    }
-                    color = colors.get(class_name.lower(), (0, 255, 255))  # Default yellow
-                    
                     # Draw bounding box
-                    cv2.rectangle(frame, (l, t), (r, b), color, 2)
+                    cv2.rectangle(frame, (l, t), (r, b), (0, 255, 0), 2)
                     
-                    # Create label with class name and track ID
-                    label = f"{class_name} ID:{track_id}"
-                    
-                    # Calculate text size for background
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.6
-                    thickness = 2
-                    (text_width, text_height), baseline = cv2.getTextSize(label, font, font_scale, thickness)
-                    
-                    # Draw background rectangle for text
-                    cv2.rectangle(frame, (l, t - text_height - 10), 
-                                (l + text_width, t), color, -1)
-                    
-                    # Draw text
-                    cv2.putText(frame, label, (l, t - 5), 
-                               font, font_scale, (255, 255, 255), thickness)
-                               
+                    # Draw track ID
+                    label = f"ID: {track_id}"
+                    cv2.putText(frame, label, (l, t - 10), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             except Exception:
                 pass  # Continue even if drawing fails
             
@@ -604,17 +516,36 @@ with tab2:
     
     st.info(f"📁 Maximum file size: {max_file_size} MB | Frame skip: {skip_frames}")
     
-   
+    if uploaded_video is None:
+        st.markdown("### 📋 Instructions:")
+        st.markdown("""
+        1. **Upload a video** using the file uploader above
+        2. **Adjust settings** in the sidebar:
+           - Increase frame skip for faster processing
+           - Reduce file size limit if having issues
+           - Lower confidence for more detections
+        3. **For stability**: Keep videos under 50MB and use frame skip ≥3
+        4. **If crashes occur**: Try smaller videos or restart the app
+        """)
+        
+        st.markdown("### ⚡ Performance Tips:")
+        st.markdown("""
+        - **Shorter videos** (< 30 seconds) work best
+        - **Higher frame skip** = faster but less accurate
+        - **CPU processing** is more stable than GPU
+        - **Restart app** if you encounter repeated crashes
+        """)
+    
     if uploaded_video is not None:
         file_size = len(uploaded_video.getvalue()) / (1024 * 1024)
         st.success(f"✅ Video uploaded! Size: {file_size:.1f} MB")
         
         if file_size > max_file_size:
-            st.error(f"❗File too large! Limit: {max_file_size}MB")
-            st.info("Increase the limit in sidebar or use a smaller video")
+            st.error(f"🚫 File too large! Limit: {max_file_size}MB")
+            st.info("💡 Increase the limit in sidebar or use a smaller video")
         else:
             # Show video preview
-            st.markdown("### Video Preview")
+            st.markdown("### 🖼️ Video Preview")
             try:
                 st.video(uploaded_video)
             except:
@@ -625,7 +556,7 @@ with tab2:
             
             # Model validation
             if selected_model == "Text-prompt Detection" and not category_names:
-                st.warning("❗Enter class names in sidebar for text-prompt detection!")
+                st.warning("⚠️ Enter class names in sidebar for text-prompt detection!")
             elif selected_model == "Text-prompt Detection":
                 st.info(f"**Detecting:** {', '.join(category_names)}")
             else:
@@ -636,7 +567,7 @@ with tab2:
             # Processing button
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                if st.button("Process Video", key="process_btn", use_container_width=True):
+                if st.button("🚀 Process Video", key="process_btn", use_container_width=True):
                     
                     # Create temp files
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_in:
@@ -663,7 +594,7 @@ with tab2:
                         if error_msg:
                             st.error(f"❌ Processing failed: {error_msg}")
                         elif result_path and os.path.exists(result_path) and os.path.getsize(result_path) > 1000:
-                            st.success("✔ Video processed successfully!")
+                            st.success("✅ Video processed successfully!")
                             
                             # Display result
                             st.markdown("### 🎯 Processed Video")
@@ -674,14 +605,14 @@ with tab2:
                             
                             # Download button
                             st.download_button(
-                                "Download Processed Video",
+                                "📥 Download Processed Video",
                                 data=video_bytes,
                                 file_name=f"processed_{uploaded_video.name}",
                                 mime="video/mp4"
                             )
                             
                             # Show detection summary
-                            st.markdown("### Detection Summary")
+                            st.markdown("### 📊 Detection Summary")
                             if detection_counts:
                                 total = sum(detection_counts.values())
                                 st.markdown(f"**Total detections:** {total}")
@@ -707,6 +638,6 @@ with tab2:
 # Footer
 st.markdown("---")
 st.markdown(
-    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
+    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">🚀 Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
     unsafe_allow_html=True
 )

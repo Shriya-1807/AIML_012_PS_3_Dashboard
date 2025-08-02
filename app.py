@@ -130,6 +130,13 @@ st.markdown("""
                 margin: 0.2rem 0 0.6rem 0 !important;
             }
         }
+           @media (max-width: 320px) {
+            .title {
+                font-size: 14px !important;
+                line-height: 1.0 !important;
+                padding: 6px 3px !important;
+            }
+        }
     </style>
 """, unsafe_allow_html=True)
 

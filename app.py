@@ -1,14 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Drone Footage Object Detection and Tracking App
-Fixed version with class names on bounding boxes
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Drone Footage Object Detection and Tracking App
-Fixed version with class names on bounding boxes
-"""
 
 import streamlit as st
 import numpy as np
@@ -27,7 +16,7 @@ import psutil
 import threading
 from contextlib import contextmanager
 
-# Import with error handling
+
 try:
     from ultralytics import YOLOWorld
     from sahi.predict import get_sliced_prediction
@@ -37,7 +26,6 @@ except ImportError as e:
     st.error(f"Missing required package: {e}")
     st.stop()
 
-# Memory management context manager
 @contextmanager
 def memory_cleanup():
     try:
@@ -47,10 +35,10 @@ def memory_cleanup():
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-# Streamlit Page Config
-st.set_page_config(page_title='Drone Detector', page_icon='🚀', layout='wide')
 
-# Add memory info to sidebar
+st.set_page_config(page_title='Drone Footage Object Detector', page_icon='🖈', layout='wide')
+
+
 def show_memory_info():
     """Display current memory usage"""
     memory = psutil.virtual_memory()
@@ -61,7 +49,7 @@ def show_memory_info():
         gpu_memory = torch.cuda.memory_allocated() / 1024**3
         st.sidebar.markdown(f"GPU Memory: {gpu_memory:.1f} GB")
 
-# Styling
+
 st.markdown("""
     <style>
         .main {max-height: 100vh; overflow-y: scroll;}
@@ -131,16 +119,16 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Create a container for the title to ensure full width
+
 title_container = st.container()
 with title_container:
     st.markdown(
-        '<div class="title">🚀 Drone Footage Object Detection and Tracking 🎯</div>', 
+        '<div class="title">Drone Footage Object Detection and Tracking </div>', 
         unsafe_allow_html=True
     )
-tab1, tab2 = st.tabs(["📸 Image Processing", "🎥 Video Processing"])
+tab1, tab2 = st.tabs(["📸 Image ", "🎥 Video "])
 
-# Sidebar Configuration
+
 st.sidebar.markdown("## Model Configuration")
 
 selected_model = st.sidebar.radio(
@@ -158,7 +146,7 @@ confidence_value = st.sidebar.slider(
     step=0.05
 )
 
-# Video processing settings
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Video Processing Settings**")
 
@@ -180,16 +168,16 @@ max_file_size = st.sidebar.slider(
     help="Reduced default for stability"
 )
 
-# Model paths
+
 model_path = "last.pt"
 text_prompt_model_path = "yolov8l-worldv2.pt"
 
-# Validate model files exist
+
 if not os.path.exists(model_path):
-    st.sidebar.warning(f"⚠️ Default model file '{model_path}' not found!")
+    st.sidebar.warning(f"❗Default model file '{model_path}' not found!")
 
 if selected_model == "Text-prompt Detection" and not os.path.exists(text_prompt_model_path):
-    st.sidebar.warning(f"⚠️ Text prompt model file '{text_prompt_model_path}' not found!")
+    st.sidebar.warning(f"❗Text prompt model file '{text_prompt_model_path}' not found!")
 
 category_names = []
 if selected_model == "Text-prompt Detection":
@@ -207,10 +195,9 @@ if selected_model == "Text-prompt Detection":
         for i, name in enumerate(category_names, 1):
             st.sidebar.write(f"{i}. {name}")
 
-# Show system info
+
 show_memory_info()
 
-# Image Processing Functions (keeping original logic)
 def run_sahi_yolo_inference(image_pil, model_path, conf):
     """Run SAHI inference with default YOLO model"""
     try:
@@ -270,7 +257,7 @@ def run_text_prompt_sahi_inference(image_pil, model_path, conf, category_names):
         st.error(f"Error in text prompt inference: {str(e)}")
         return None
 
-# Tab 1: Image Processing (keeping original logic)
+
 with tab1:
     st.markdown(
         '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:2px;">📸 Upload a drone image</p>',
@@ -286,11 +273,11 @@ with tab1:
     if uploaded_image is not None:
         try:
             image = Image.open(uploaded_image)
-            st.markdown("### 🖼️ Uploaded Image Preview")
+            st.markdown("### Uploaded Image Preview")
             st.image(image, caption="Uploaded Image", use_container_width=True)
 
             if selected_model == "Text-prompt Detection" and not category_names:
-                st.warning("⚠️ Please enter class names in the sidebar for text prompt detection!")
+                st.warning("❗Please enter class names in the sidebar for text prompt detection!")
             else:
                 if selected_model == "Text-prompt Detection" and category_names:
                     st.info(f"**Detecting:** {', '.join(category_names)}")
@@ -327,7 +314,7 @@ with tab1:
                             time.sleep(1)
                             
                             if os.path.exists(result_img_path):
-                                st.success("✅ Inference completed and image exported successfully!")
+                                st.success("✔ Inference completed and image exported successfully!")
                             else:
                                 st.error("❌ Failed to export result visualization.")
                                 result_img_path = None
@@ -345,13 +332,13 @@ with tab1:
                     st.image(img_bytes, caption="Detected Objects with SAHI", use_container_width=True)
                     
                     st.download_button(
-                        label="📥 Download Annotated Image",
+                        label="Download Annotated Image",
                         data=img_bytes,
                         file_name=f"detected_{uploaded_image.name}",
                         mime="image/png"
                     )
                     
-                    st.markdown("### 📊 Detection Summary")
+                    st.markdown("### Detection Summary")
                     if hasattr(result, 'object_prediction_list') and result.object_prediction_list:
                         class_names = [pred.category.name for pred in result.object_prediction_list]
                         class_counts = Counter(class_names)
@@ -363,12 +350,12 @@ with tab1:
                     else:
                         st.markdown("No objects detected in the image.")
                 elif result is not None:
-                    st.warning("⚠️ Detection completed but could not save the result image.")
+                    st.warning("❗Detection completed but could not save the result image.")
                         
         except Exception as e:
             st.error(f"Error processing image: {str(e)}")
 
-# Fixed Video Processing Function with Class Names on Bounding Boxes
+
 def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selected_model, category_names=None, skip_frames=3):
     """Robust video processing with class names displayed on bounding boxes"""
     
@@ -378,7 +365,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
     tracker = None
     
     try:
-        # Initialize model with error handling
+        
         if selected_model == "Default Detection":
             if not os.path.exists(model_path):
                 return None, None, "Model file not found"
@@ -391,19 +378,18 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
             model = YOLOWorld(text_prompt_model_path)
             model.set_classes(category_names)
         
-        # Move model to CPU for stability (GPU can cause crashes)
+        
         device = "cpu"  # Force CPU for stability
         model.model.to(device)
         
-        # Initialize tracker
+        
         tracker = DeepSort(max_age=10, n_init=3)
         
-        # Open video
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
             return None, None, "Could not open video file"
         
-        # Get video properties
+        
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         fps = cap.get(cv2.CAP_PROP_FPS)
@@ -412,7 +398,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         if fps <= 0 or np.isnan(fps):
             fps = 24.0
         
-        # Setup video writer
+       
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
         
@@ -423,16 +409,16 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         processed_frames = 0
         detection_counts = Counter()
         prev_tracks = []
-        track_class_map = {}  # Store class info for each track
+        track_class_map = {}  
         
-        # Create progress containers
+       
         progress_container = st.container()
         with progress_container:
             progress_bar = st.progress(0)
             status_text = st.empty()
             frame_info = st.empty()
         
-        # Process frames
+        
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -440,18 +426,18 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
             
             frame_count += 1
             
-            # Update progress every 10 frames
+            
             if frame_count % 10 == 0:
                 progress = min(frame_count / max(total_frames, 1), 1.0)
                 progress_bar.progress(progress)
                 status_text.text(f"Processing: {frame_count}/{total_frames} frames")
                 frame_info.text(f"Processed: {processed_frames} | Skipped: {frame_count - processed_frames}")
             
-            # Run detection every skip_frames
+            
             if frame_count % skip_frames == 0:
                 processed_frames += 1
                 try:
-                    # Run inference with timeout protection
+                    
                     with memory_cleanup():
                         results = model.predict(
                             frame, 
@@ -466,7 +452,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                         results = results[0]
                         
                         detections = []
-                        current_detections_info = []  # Store class info for current detections
+                        current_detections_info = [] 
                         
                         if results.boxes is not None and len(results.boxes) > 0:
                             for box in results.boxes:
@@ -475,7 +461,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                                     conf_score = float(box.conf[0].cpu().numpy())
                                     cls = int(box.cls[0].cpu().numpy())
                                     
-                                    # Get class name
+                                    
                                     if selected_model == "Default Detection":
                                         class_name = model.names.get(cls, f"class_{cls}")
                                     else:
@@ -489,12 +475,12 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                                         'confidence': conf_score
                                     })
                                 except Exception:
-                                    continue  # Skip invalid detections
+                                    continue  
                         
-                        # Update tracker
+                        
                         tracks = tracker.update_tracks(detections, frame=frame)
                         
-                        # Update track-class mapping
+                       
                         for i, track in enumerate(tracks):
                             if track.is_confirmed() and i < len(current_detections_info):
                                 track_class_map[track.track_id] = current_detections_info[i]['class_name']
@@ -504,12 +490,11 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                         tracks = prev_tracks
                         
                 except Exception:
-                    # Use previous tracks if detection fails
+                    
                     tracks = prev_tracks
             else:
                 tracks = prev_tracks
             
-            # Draw tracking results with class names
             try:
                 for track in tracks:
                     if not track.is_confirmed():
@@ -519,10 +504,10 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                     l, t, r, b = map(int, ltrb)
                     track_id = track.track_id
                     
-                    # Get class name for this track
+                    
                     class_name = track_class_map.get(track_id, "Unknown")
                     
-                    # Choose color based on class (you can customize this)
+                
                     colors = {
                         'person': (0, 255, 0),      # Green
                         'car': (255, 0, 0),         # Blue
@@ -533,37 +518,34 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
                     }
                     color = colors.get(class_name.lower(), (0, 255, 255))  # Default yellow
                     
-                    # Draw bounding box
+                   
                     cv2.rectangle(frame, (l, t), (r, b), color, 2)
                     
-                    # Create label with class name and track ID
+                   
                     label = f"{class_name} ID:{track_id}"
                     
-                    # Calculate text size for background
                     font = cv2.FONT_HERSHEY_SIMPLEX
                     font_scale = 0.6
                     thickness = 2
                     (text_width, text_height), baseline = cv2.getTextSize(label, font, font_scale, thickness)
                     
-                    # Draw background rectangle for text
+                    
                     cv2.rectangle(frame, (l, t - text_height - 10), 
                                 (l + text_width, t), color, -1)
                     
-                    # Draw text
+                  
                     cv2.putText(frame, label, (l, t - 5), 
                                font, font_scale, (255, 255, 255), thickness)
                                
             except Exception:
-                pass  # Continue even if drawing fails
+                pass 
             
-            # Write frame
             out.write(frame)
             
-            # Memory cleanup every 100 frames
             if frame_count % 100 == 0:
                 gc.collect()
         
-        # Clear progress indicators
+       
         progress_container.empty()
         
         return output_path, detection_counts, None
@@ -573,7 +555,7 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         return None, None, error_msg
         
     finally:
-        # Cleanup resources
+        
         try:
             if cap is not None:
                 cap.release()
@@ -582,12 +564,12 @@ def process_video_with_yolo_deepsort_robust(video_path, output_path, conf, selec
         except:
             pass
         
-        # Force garbage collection
+        
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-# Tab 2: Robust Video Processing
+# Tab 2:Video Processing
 with tab2:
     st.markdown(
         '<p style="font-size:22px; font-family:\'Segoe UI\', sans-serif; font-weight:bold; color:#8cc8e6; margin-top:2px;">🎥 Upload a drone video</p>',
@@ -602,49 +584,29 @@ with tab2:
         help="Supported formats: MP4, AVI, MOV, MKV"
     )
     
-    st.info(f"📁 Maximum file size: {max_file_size} MB | Frame skip: {skip_frames}")
-    
-    if uploaded_video is None:
-        st.markdown("### 📋 Instructions:")
-        st.markdown("""
-        1. **Upload a video** using the file uploader above
-        2. **Adjust settings** in the sidebar:
-           - Increase frame skip for faster processing
-           - Reduce file size limit if having issues
-           - Lower confidence for more detections
-        3. **For stability**: Keep videos under 50MB and use frame skip ≥3
-        4. **If crashes occur**: Try smaller videos or restart the app
-        """)
-        
-        st.markdown("### ⚡ Performance Tips:")
-        st.markdown("""
-        - **Shorter videos** (< 30 seconds) work best
-        - **Higher frame skip** = faster but less accurate
-        - **CPU processing** is more stable than GPU
-        - **Restart app** if you encounter repeated crashes
-        """)
+    st.info(f"Maximum file size: {max_file_size} MB | Frame skip: {skip_frames}")
     
     if uploaded_video is not None:
         file_size = len(uploaded_video.getvalue()) / (1024 * 1024)
-        st.success(f"✅ Video uploaded! Size: {file_size:.1f} MB")
+        st.success(f"✔ Video uploaded! Size: {file_size:.1f} MB")
         
         if file_size > max_file_size:
-            st.error(f"🚫 File too large! Limit: {max_file_size}MB")
-            st.info("💡 Increase the limit in sidebar or use a smaller video")
+            st.error(f"❗File too large! Limit: {max_file_size}MB")
+            st.info("Increase the limit in sidebar or use a smaller video")
         else:
-            # Show video preview
-            st.markdown("### 🖼️ Video Preview")
+            
+            st.markdown("### Video Preview")
             try:
                 st.video(uploaded_video)
             except:
                 st.warning("Could not display preview, but processing should still work")
             
-            # Show file info
+            
             st.markdown(f"**File:** {uploaded_video.name} | **Size:** {file_size:.1f} MB")
             
-            # Model validation
+            
             if selected_model == "Text-prompt Detection" and not category_names:
-                st.warning("⚠️ Enter class names in sidebar for text-prompt detection!")
+                st.warning("❗Enter class names in sidebar for text-prompt detection!")
             elif selected_model == "Text-prompt Detection":
                 st.info(f"**Detecting:** {', '.join(category_names)}")
             else:
@@ -655,9 +617,9 @@ with tab2:
             # Processing button
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                if st.button("🚀 Process Video", key="process_btn", use_container_width=True):
+                if st.button("Process Video", key="process_btn", use_container_width=True):
                     
-                    # Create temp files
+                    
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_in:
                         tmp_in.write(uploaded_video.read())
                         temp_input = tmp_in.name
@@ -682,25 +644,25 @@ with tab2:
                         if error_msg:
                             st.error(f"❌ Processing failed: {error_msg}")
                         elif result_path and os.path.exists(result_path) and os.path.getsize(result_path) > 1000:
-                            st.success("✅ Video processed successfully!")
+                            st.success("✔ Video processed successfully!")
                             
                             # Display result
-                            st.markdown("### 🎯 Processed Video")
+                            st.markdown("### Processed Video")
                             with open(result_path, 'rb') as f:
                                 video_bytes = f.read()
                             
                             st.video(video_bytes)
                             
-                            # Download button
+                            
                             st.download_button(
-                                "📥 Download Processed Video",
+                                "Download Processed Video",
                                 data=video_bytes,
                                 file_name=f"processed_{uploaded_video.name}",
                                 mime="video/mp4"
                             )
                             
-                            # Show detection summary
-                            st.markdown("### 📊 Detection Summary")
+                           
+                            st.markdown("### Detection Summary")
                             if detection_counts:
                                 total = sum(detection_counts.values())
                                 st.markdown(f"**Total detections:** {total}")
@@ -716,16 +678,16 @@ with tab2:
                         st.code(traceback.format_exc())
                         
                     finally:
-                        # Cleanup
+                        
                         try:
                             os.unlink(temp_input)
                             os.unlink(temp_output)
                         except:
                             pass
 
-# Footer
+
 st.markdown("---")
 st.markdown(
-    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">🚀 Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
+    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
     unsafe_allow_html=True
 )

@@ -53,7 +53,7 @@ st.markdown("""
     <style>
         .main {max-height: 100vh; overflow-y: scroll;}
         .block-container {
-            padding-top: 1rem !important; 
+            padding-top: 0.5rem !important; 
             margin-top: 0rem !important;
             max-width: 100% !important;
             padding-left: 1rem !important;

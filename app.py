@@ -4,6 +4,12 @@ Drone Footage Object Detection and Tracking App
 Fixed version with class names on bounding boxes
 """
 
+# -*- coding: utf-8 -*-
+"""
+Drone Footage Object Detection and Tracking App
+Fixed version with class names on bounding boxes
+"""
+
 import streamlit as st
 import numpy as np
 import tempfile
@@ -42,7 +48,7 @@ def memory_cleanup():
             torch.cuda.empty_cache()
 
 # Streamlit Page Config
-st.set_page_config(page_title='Drone Footage Object Detector', page_icon='🖈', layout='wide')
+st.set_page_config(page_title='Drone Detector', page_icon='🚀', layout='wide')
 
 # Add memory info to sidebar
 def show_memory_info():
@@ -129,10 +135,10 @@ st.markdown("""
 title_container = st.container()
 with title_container:
     st.markdown(
-        '<div class="title">Drone Footage Object Detection and Tracking</div>', 
+        '<div class="title">🚀 Drone Footage Object Detection and Tracking 🎯</div>', 
         unsafe_allow_html=True
     )
-tab1, tab2 = st.tabs(["📸 Image                    ", "🎥 Video                  "])
+tab1, tab2 = st.tabs(["📸 Image Processing", "🎥 Video Processing"])
 
 # Sidebar Configuration
 st.sidebar.markdown("## Model Configuration")
@@ -180,10 +186,10 @@ text_prompt_model_path = "yolov8l-worldv2.pt"
 
 # Validate model files exist
 if not os.path.exists(model_path):
-    st.sidebar.warning(f"❗Default model file '{model_path}' not found!")
+    st.sidebar.warning(f"⚠️ Default model file '{model_path}' not found!")
 
 if selected_model == "Text-prompt Detection" and not os.path.exists(text_prompt_model_path):
-    st.sidebar.warning(f"❗Text prompt model file '{text_prompt_model_path}' not found!")
+    st.sidebar.warning(f"⚠️ Text prompt model file '{text_prompt_model_path}' not found!")
 
 category_names = []
 if selected_model == "Text-prompt Detection":
@@ -280,11 +286,11 @@ with tab1:
     if uploaded_image is not None:
         try:
             image = Image.open(uploaded_image)
-            st.markdown("### Uploaded Image Preview")
+            st.markdown("### 🖼️ Uploaded Image Preview")
             st.image(image, caption="Uploaded Image", use_container_width=True)
 
             if selected_model == "Text-prompt Detection" and not category_names:
-                st.warning("❗Please enter class names in the sidebar for text prompt detection!")
+                st.warning("⚠️ Please enter class names in the sidebar for text prompt detection!")
             else:
                 if selected_model == "Text-prompt Detection" and category_names:
                     st.info(f"**Detecting:** {', '.join(category_names)}")
@@ -321,7 +327,7 @@ with tab1:
                             time.sleep(1)
                             
                             if os.path.exists(result_img_path):
-                                st.success("✔ Inference completed and image exported successfully!")
+                                st.success("✅ Inference completed and image exported successfully!")
                             else:
                                 st.error("❌ Failed to export result visualization.")
                                 result_img_path = None
@@ -339,13 +345,13 @@ with tab1:
                     st.image(img_bytes, caption="Detected Objects with SAHI", use_container_width=True)
                     
                     st.download_button(
-                        label="Download Annotated Image",
+                        label="📥 Download Annotated Image",
                         data=img_bytes,
                         file_name=f"detected_{uploaded_image.name}",
                         mime="image/png"
                     )
                     
-                    st.markdown("### Detection Summary")
+                    st.markdown("### 📊 Detection Summary")
                     if hasattr(result, 'object_prediction_list') and result.object_prediction_list:
                         class_names = [pred.category.name for pred in result.object_prediction_list]
                         class_counts = Counter(class_names)
@@ -357,7 +363,7 @@ with tab1:
                     else:
                         st.markdown("No objects detected in the image.")
                 elif result is not None:
-                    st.warning("❗Detection completed but could not save the result image.")
+                    st.warning("⚠️ Detection completed but could not save the result image.")
                         
         except Exception as e:
             st.error(f"Error processing image: {str(e)}")
@@ -598,17 +604,36 @@ with tab2:
     
     st.info(f"📁 Maximum file size: {max_file_size} MB | Frame skip: {skip_frames}")
     
-   
+    if uploaded_video is None:
+        st.markdown("### 📋 Instructions:")
+        st.markdown("""
+        1. **Upload a video** using the file uploader above
+        2. **Adjust settings** in the sidebar:
+           - Increase frame skip for faster processing
+           - Reduce file size limit if having issues
+           - Lower confidence for more detections
+        3. **For stability**: Keep videos under 50MB and use frame skip ≥3
+        4. **If crashes occur**: Try smaller videos or restart the app
+        """)
+        
+        st.markdown("### ⚡ Performance Tips:")
+        st.markdown("""
+        - **Shorter videos** (< 30 seconds) work best
+        - **Higher frame skip** = faster but less accurate
+        - **CPU processing** is more stable than GPU
+        - **Restart app** if you encounter repeated crashes
+        """)
+    
     if uploaded_video is not None:
         file_size = len(uploaded_video.getvalue()) / (1024 * 1024)
         st.success(f"✅ Video uploaded! Size: {file_size:.1f} MB")
         
         if file_size > max_file_size:
-            st.error(f"❗File too large! Limit: {max_file_size}MB")
-            st.info("Increase the limit in sidebar or use a smaller video")
+            st.error(f"🚫 File too large! Limit: {max_file_size}MB")
+            st.info("💡 Increase the limit in sidebar or use a smaller video")
         else:
             # Show video preview
-            st.markdown("### Video Preview")
+            st.markdown("### 🖼️ Video Preview")
             try:
                 st.video(uploaded_video)
             except:
@@ -619,7 +644,7 @@ with tab2:
             
             # Model validation
             if selected_model == "Text-prompt Detection" and not category_names:
-                st.warning("❗Enter class names in sidebar for text-prompt detection!")
+                st.warning("⚠️ Enter class names in sidebar for text-prompt detection!")
             elif selected_model == "Text-prompt Detection":
                 st.info(f"**Detecting:** {', '.join(category_names)}")
             else:
@@ -630,7 +655,7 @@ with tab2:
             # Processing button
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
-                if st.button("Process Video", key="process_btn", use_container_width=True):
+                if st.button("🚀 Process Video", key="process_btn", use_container_width=True):
                     
                     # Create temp files
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_in:
@@ -657,7 +682,7 @@ with tab2:
                         if error_msg:
                             st.error(f"❌ Processing failed: {error_msg}")
                         elif result_path and os.path.exists(result_path) and os.path.getsize(result_path) > 1000:
-                            st.success("✔ Video processed successfully!")
+                            st.success("✅ Video processed successfully!")
                             
                             # Display result
                             st.markdown("### 🎯 Processed Video")
@@ -668,14 +693,14 @@ with tab2:
                             
                             # Download button
                             st.download_button(
-                                "Download Processed Video",
+                                "📥 Download Processed Video",
                                 data=video_bytes,
                                 file_name=f"processed_{uploaded_video.name}",
                                 mime="video/mp4"
                             )
                             
                             # Show detection summary
-                            st.markdown("### Detection Summary")
+                            st.markdown("### 📊 Detection Summary")
                             if detection_counts:
                                 total = sum(detection_counts.values())
                                 st.markdown(f"**Total detections:** {total}")
@@ -701,6 +726,6 @@ with tab2:
 # Footer
 st.markdown("---")
 st.markdown(
-    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
+    '<p style="text-align: center; color: #8cc8e6; font-size: 14px;">🚀 Drone Detection Dashboard | Built with Streamlit & YOLO</p>',
     unsafe_allow_html=True
 )

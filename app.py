@@ -104,21 +104,19 @@ st.markdown("""
             color: #000000;
         }
         
-        
         @media (max-width: 768px) {
             .title {
-                
                 font-size: 24px !important;
                 padding: 8px !important;
                 line-height: 1.1 !important;
-            }
             }
         }
         
         @media (max-width: 480px) {
             .title {
-                font-size: 20px;
-                line-height: 1.1;
+                font-size: 18px !important;
+                line-height: 1.0 !important;
+                padding: 5px !important;
             }
         }
     </style>

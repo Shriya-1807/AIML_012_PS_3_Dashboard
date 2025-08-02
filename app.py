@@ -104,11 +104,14 @@ st.markdown("""
             color: #000000;
         }
         
-        /* Responsive title for smaller screens */
+        
         @media (max-width: 768px) {
             .title {
-                font-size: 24px;
-                padding: 5px;
+                
+                font-size: 24px !important;
+                padding: 8px !important;
+                line-height: 1.1 !important;
+            }
             }
         }
         

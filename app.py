@@ -74,6 +74,9 @@ st.markdown("""
             white-space: normal;
             display: block;
             box-sizing: border-box;
+            min-height: auto;
+            height: auto;
+            overflow: visible;
         }
         section[data-testid="stSidebar"] {
             background: linear-gradient(to bottom, #0F202B, #202D4A, #172626);

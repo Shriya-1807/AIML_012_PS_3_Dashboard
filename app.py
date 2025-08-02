@@ -71,6 +71,8 @@ st.markdown("""
             line-height: 1.2;
             width: 100%;
             max-width: 100%;
+            overflow-wrap: break-word;
+            white-space: normal;
         }
         section[data-testid="stSidebar"] {
             background: linear-gradient(to bottom, #0F202B, #202D4A, #172626);

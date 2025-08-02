@@ -125,7 +125,7 @@ st.markdown("""
             .title {
                 font-size: 18px !important;
                 line-height: 1.1 !important;
-                padding: 8px 3px !important;
+                padding: 15px 10px !important;
             }
         }
     </style>

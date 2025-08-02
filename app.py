@@ -138,7 +138,7 @@ with title_container:
         '<div class="title">Drone Footage Object Detection and Tracking</div>', 
         unsafe_allow_html=True
     )
-tab1, tab2 = st.tabs(["📸 Image Processing ", "🎥 Video Processing "])
+tab1, tab2 = st.tabs(["📸 Image  ", "🎥 Video  "])
 
 # Sidebar Configuration
 st.sidebar.markdown("## Model Configuration")

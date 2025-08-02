@@ -109,7 +109,7 @@ st.markdown("""
             .title {
                 font-size: 26px !important;
                 padding: 12px 8px !important;
-                line-height: 1.2 !important;
+                line-height: 1.25 !important;
             }
         }
         
@@ -118,14 +118,16 @@ st.markdown("""
                 font-size: 22px !important;
                 padding: 10px 5px !important;
                 line-height: 1.2 !important;
+                margin: 0.3rem 0 0.8rem 0 !important;
             }
         }
         
         @media (max-width: 480px) {
             .title {
-                font-size: 18px !important;
+                font-size: 16px !important;
                 line-height: 1.1 !important;
-                padding: 15px 10px !important;
+                padding: 8px 5px !important;
+                margin: 0.2rem 0 0.6rem 0 !important;
             }
         }
     </style>
